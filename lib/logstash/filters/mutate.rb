@@ -5,7 +5,7 @@ require "logstash/namespace"
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, remove, replace, and modify fields in your events.
 #
-# TODO(sissel): Support regexp replacements like String#gsub ?
+# TODO(sissel): Support regexp replacements like `String#gsub` ?
 class LogStash::Filters::Mutate < LogStash::Filters::Base
   config_name "mutate"
   milestone 3
@@ -13,7 +13,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Rename one or more fields.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         # Renames the 'HOSTORIP' field to 'client_ip'
@@ -25,14 +25,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Remove one or more fields.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         remove => [ "client" ]  # Removes the 'client' field
   #       }
   #     }
   #
-  # This option is deprecated, instead use remove_field option available in all
+  # This option is deprecated, instead use `remove_field` option available in all
   # filters.
   config :remove, :validate => :array, :deprecated => true
 
@@ -40,7 +40,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # to help you build a new value from other parts of the event.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         replace => { "message" => "%{source_host}: My new message" }
@@ -52,7 +52,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # then no action will be taken.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         update => { "sample" => "My new message" }
@@ -67,7 +67,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Valid conversion targets are: integer, float, string.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         convert => { "fieldname" => "integer" }
@@ -84,7 +84,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Be aware of escaping any backslash in the config file.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         gsub => [
@@ -103,7 +103,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Convert a string to its uppercase equivalent.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         uppercase => [ "fieldname" ]
@@ -114,7 +114,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Convert a string to its lowercase equivalent.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #         lowercase => [ "fieldname" ]
@@ -126,7 +126,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # fields.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #          split => { "fieldname" => "," }
@@ -137,7 +137,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Join an array with a separator character. Does nothing on non-array fields.
   #
   # Example:
-  #
+  # [source,ruby]
   #    filter {
   #      mutate {
   #        join => { "fieldname" => "," }
@@ -148,7 +148,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # Strip whitespace from field. NOTE: this only works on leading and trailing whitespace.
   #
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #          strip => ["field1", "field2"]
@@ -158,12 +158,13 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   # Merge two fields of arrays or hashes.
   # String fields will be automatically be converted into an array, so:
-  #   array + string will work
-  #   string + string will result in an 2 entry array in dest_field
-  #   array and hash will not work
-  #
+  # ==========================
+  #   `array` + `string` will work
+  #   `string` + `string` will result in an 2 entry array in `dest_field`
+  #   `array` and `hash` will not work
+  # ==========================
   # Example:
-  #
+  # [source,ruby]
   #     filter {
   #       mutate {
   #          merge => { "dest_field" => "added_field" }
