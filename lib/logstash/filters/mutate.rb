@@ -8,7 +8,6 @@ require "logstash/namespace"
 # TODO(sissel): Support regexp replacements like `String#gsub` ?
 class LogStash::Filters::Mutate < LogStash::Filters::Base
   config_name "mutate"
-  milestone 3
 
   # Rename one or more fields.
   #
