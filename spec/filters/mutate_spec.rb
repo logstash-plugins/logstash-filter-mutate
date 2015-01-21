@@ -139,6 +139,23 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "remove on non-existent field" do
+    config '
+      filter {
+        mutate {
+          remove => "[foo][bar]"
+        }
+      }'
+
+    sample(
+       "abc"  => "def"
+    ) do
+      insist { subject["abc"] } == "def"
+      #reject { subject }.include?("foo")
+    end
+  end
+  
+
   describe "convert one field to string" do
     config '
       filter {
