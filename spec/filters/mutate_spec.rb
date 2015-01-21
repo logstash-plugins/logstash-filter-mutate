@@ -151,7 +151,6 @@ describe LogStash::Filters::Mutate do
        "abc"  => "def"
     ) do
       insist { subject["abc"] } == "def"
-      #reject { subject }.include?("foo")
     end
   end
   
