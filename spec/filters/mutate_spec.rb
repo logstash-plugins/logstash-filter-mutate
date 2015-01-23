@@ -108,6 +108,72 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "select only one specified fields" do
+    config '
+      filter {
+        mutate {
+          select => [ "survivor" ]
+        }
+      }'
+
+    sample("remove-me" => "Goodbye!", "let-me-go" => "Cheers", "survivor" => "Hello.") do
+      insist { subject }.include?("survivor")
+      insist { subject }.include?("@timestamp")
+      reject { subject }.include?("remove-me")
+      reject { subject }.include?("let-me-go")
+    end
+  end
+
+  describe "select multiple specified fields" do
+    config '
+      filter {
+        mutate {
+          select => [ "survivor", "the-sequel" ]
+        }
+      }'
+
+    sample("remove-me" => "Goodbye!", "let-me-go" => "Cheers", "survivor" => "Hello", "the-sequel" => "World") do
+      insist { subject }.include?("survivor")
+      insist { subject }.include?("the-sequel")
+      insist { subject }.include?("@timestamp")
+      reject { subject }.include?("remove-me")
+      reject { subject }.include?("let-me-go")
+    end
+  end
+
+  describe "select should work on nested fields" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          select => [ "[foo][bar]" ]
+        }
+      }
+    CONFIG
+
+    sample({ "foo" => { "bar" => "1000", "nomore" => "2000" }, "remove" => "me" }) do
+      insist { subject }.include?("[foo][bar]")
+      reject { subject }.include?("remove")
+      reject { subject }.include?("[foo][nomore]")
+    end
+  end
+
+  describe "select dynamic fields (%{})" do
+    config '
+      filter {
+        mutate {
+          select => [ "field_%{x}" ]
+        }
+      }'
+
+    sample("x" => "one", "field_one" => "two") do
+      insist { subject }.include?("field_one")
+    end
+
+    sample("field_one" => "two", "x" => "one") do
+      insist { subject }.include?("field_one")
+    end
+  end
+
   describe "convert one field to string" do
     config '
       filter {
