@@ -160,6 +160,19 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "gsub on regular expression" do
+    config '
+      filter {
+        mutate {
+          gsub => [ "colors", "\d$", "blue"]
+        }
+      }'
+
+    sample("colors" => "red3") do
+      insist { subject["colors"] } == "redblue"
+    end
+  end
+
   describe "regression - mutate should lowercase a field created by grok" do
     config <<-CONFIG
       filter {
