@@ -89,9 +89,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #         gsub => [
   #           # replace all forward slashes with underscore
   #           "fieldname", "/", "_",
-  #
-  #           # replace backslashes, question marks, hashes, and minuses with
-  #           # dot
+  #           # replace backslashes, question marks, hashes, and minuses
+  #           # with a dot "."
   #           "fieldname2", "[\\?#-]", "."
   #         ]
   #       }
