@@ -220,17 +220,18 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   private
   def remove(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @remove.each do |field|
+	  field = event.sprintf(field)
       event.remove(field)
     end
   end # def remove
 
   private
   def rename(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @rename.each do |old, new|
+	  old = event.sprintf(old)
       next unless event.include?(old)
+	  new = event.sprintf(new)
       event[new] = event.remove(old)
     end
   end # def rename
@@ -238,6 +239,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def update(event)
     @update.each do |field, newvalue|
+	  field = event.sprintf(field)
       next unless event.include?(field)
       event[field] = event.sprintf(newvalue)
     end
@@ -246,12 +248,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def replace(event)
     @replace.each do |field, newvalue|
+	  field = event.sprintf(field)
       event[field] = event.sprintf(newvalue)
     end
   end # def replace
 
   def convert(event)
     @convert.each do |field, type|
+	  field = event.sprintf(field)
       next unless event.include?(field)
       original = event[field]
 
@@ -329,6 +333,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def uppercase(event)
     @uppercase.each do |field|
+	  field = event.sprintf(field)
       if event[field].is_a?(Array)
         event[field].each { |v| v.upcase! }
       elsif event[field].is_a?(String)
@@ -343,6 +348,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def lowercase(event)
     @lowercase.each do |field|
+	  field = event.sprintf(field)
       if event[field].is_a?(Array)
         event[field].each { |v| v.downcase! }
       elsif event[field].is_a?(String)
@@ -357,6 +363,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def split(event)
     @split.each do |field, separator|
+	  field = event.sprintf(field)
       if event[field].is_a?(String)
         event[field] = event[field].split(separator)
       else
@@ -369,6 +376,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def join(event)
     @join.each do |field, separator|
+	  field = event.sprintf(field)
       if event[field].is_a?(Array)
         event[field] = event[field].join(separator)
       end
@@ -378,6 +386,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def strip(event)
     @strip.each do |field|
+	  field = event.sprintf(field)
       if event[field].is_a?(Array)
         event[field] = event[field].map{|s| s.strip }
       elsif event[field].is_a?(String)
