@@ -63,7 +63,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # integer. If the field value is an array, all members will be converted.
   # If the field is a hash, no action will be taken.
   #
-  # Valid conversion targets are: integer, float, string.
+  # If the conversion type is `boolean`, the only acceptable values are
+  # "true" and "false".  If a value other than these is provided, it will
+  # pass straight through and log a warning message.
+  #
+  # Valid conversion targets are: integer, float, string, and boolean.
   #
   # Example:
   # [source,ruby]
@@ -172,7 +176,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   public
   def register
-    valid_conversions = %w(string integer float)
+    valid_conversions = %w(string integer float boolean)
     # TODO(sissel): Validate conversion requests if provided.
     @convert.nil? or @convert.each do |field, type|
       if !valid_conversions.include?(type)
@@ -254,8 +258,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     @convert.each do |field, type|
       next unless event.include?(field)
       original = event[field]
-
-      # calls convert_{string,integer,float} depending on type requested.
+      # calls convert_{string,integer,float,boolean} depending on type requested.
       converter = method("convert_" + type)
       if original.nil?
         next
@@ -287,6 +290,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def convert_float(value)
     return value.to_f
   end # def convert_float
+
+  def convert_boolean(value)
+    if value == "true"
+      return true
+    elsif value == "false"
+      return false
+    else
+      @logger.warn("Failed to convert #{value} into boolean. Acceptable values are \"true\" and \"false\".")
+      return value
+    end
+  end # def convert_boolean
 
   private
   def gsub(event)

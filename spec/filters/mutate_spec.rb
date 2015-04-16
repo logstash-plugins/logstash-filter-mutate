@@ -114,6 +114,39 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert strings to boolean values" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => { "true_field" => "boolean" }
+          convert => { "false_field" => "boolean"}
+          convert => { "wrong_field" => "boolean"}
+        }
+      }
+    CONFIG
+    event = {
+      "true_field" => "true",
+      "false_field" => "false",
+      "wrong_field" => "neither"
+    }
+    sample event do
+      expect(subject["true_field"]).to eq(true)
+      expect(subject["false_field"]).to eq(false)
+      expect(subject["wrong_field"]).to eq("neither")
+    end
+    # sample '"true_field" => "true"' do
+    #   expect(subject["true_field"]).to eq(true)
+    # end
+    #
+    # sample '"false_field" => "false"' do
+    #   expect(subject["false_field"]).to eq(false)
+    # end
+    #
+    # sample '"wrong_field" => "neither"' do
+    #   expect(subject["wrong_field"]).to eq("neither")
+    # end
+  end
+
   describe "gsub on a String" do
     config '
       filter {
@@ -382,4 +415,3 @@ describe LogStash::Filters::Mutate do
   end
 
 end
-
