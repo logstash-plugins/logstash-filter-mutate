@@ -273,11 +273,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       else
         value = converter.call(original)
       end
-      if value.nil?
-        event[field] = original
-      else
-        event[field] = value
-      end
+      event[field] = value
     end
   end # def convert
 
