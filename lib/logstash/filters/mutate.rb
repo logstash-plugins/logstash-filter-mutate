@@ -63,7 +63,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # integer. If the field value is an array, all members will be converted.
   # If the field is a hash, no action will be taken.
   #
-  # If the conversion type is `boolean`, the only acceptable values are
+  # If the conversion type is `boolean`, the acceptable values are:
+  # **True:** `true`, `t`, `yes`, `y`, and `1`
+  # **False:** `false`, `f`, `no`, `n`, and `0`
   # "true" and "false".  If a value other than these is provided, it will
   # pass straight through and log a warning message.
   #
@@ -271,7 +273,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       else
         value = converter.call(original)
       end
-      event[field] = value
+      if value.nil?
+        event[field] = original
+      else
+        event[field] = value
+      end
     end
   end # def convert
 
@@ -292,14 +298,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end # def convert_float
 
   def convert_boolean(value)
-    if value == "true"
-      return true
-    elsif value == "false"
-      return false
-    else
-      @logger.warn("Failed to convert #{value} into boolean. Acceptable values are \"true\" and \"false\".")
-      return value
-    end
+    return true if value =~ (/^(true|t|yes|y|1)$/i)
+    return false if value.empty? || value =~ (/^(false|f|no|n|0)$/i)
+    @logger.warn("Failed to convert #{value} into boolean.")
+    return value
   end # def convert_boolean
 
   private
