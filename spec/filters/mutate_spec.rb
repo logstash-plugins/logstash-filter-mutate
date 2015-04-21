@@ -118,33 +118,46 @@ describe LogStash::Filters::Mutate do
     config <<-CONFIG
       filter {
         mutate {
-          convert => { "true_field" => "boolean" }
-          convert => { "false_field" => "boolean"}
-          convert => { "wrong_field" => "boolean"}
+          convert => { "true_field"  => "boolean" }
+          convert => { "false_field" => "boolean" }
+          convert => { "true_upper"  => "boolean" }
+          convert => { "false_upper" => "boolean" }
+          convert => { "true_one"    => "boolean" }
+          convert => { "false_zero"  => "boolean" }
+          convert => { "true_yes"    => "boolean" }
+          convert => { "false_no"    => "boolean" }
+          convert => { "true_y"      => "boolean" }
+          convert => { "false_n"     => "boolean" }
+          convert => { "wrong_field" => "boolean" }
         }
       }
     CONFIG
     event = {
-      "true_field" => "true",
+      "true_field"  => "true",
       "false_field" => "false",
-      "wrong_field" => "neither"
+      "true_upper"  => "True",
+      "false_upper" => "False",
+      "true_one"    => "1",
+      "false_zero"  => "0",
+      "true_yes"    => "yes",
+      "false_no"    => "no",
+      "true_y"      => "Y",
+      "false_n"     => "N",
+      "wrong_field" => "none of the above"
     }
     sample event do
-      expect(subject["true_field"]).to eq(true)
+      expect(subject["true_field"] ).to eq(true)
       expect(subject["false_field"]).to eq(false)
-      expect(subject["wrong_field"]).to eq("neither")
+      expect(subject["true_upper"] ).to eq(true)
+      expect(subject["false_upper"]).to eq(false)
+      expect(subject["true_one"]   ).to eq(true)
+      expect(subject["false_zero"] ).to eq(false)
+      expect(subject["true_yes"]   ).to eq(true)
+      expect(subject["false_no"]   ).to eq(false)
+      expect(subject["true_y"]     ).to eq(true)
+      expect(subject["false_n"]    ).to eq(false)
+      expect(subject["wrong_field"]).to eq("none of the above")
     end
-    # sample '"true_field" => "true"' do
-    #   expect(subject["true_field"]).to eq(true)
-    # end
-    #
-    # sample '"false_field" => "false"' do
-    #   expect(subject["false_field"]).to eq(false)
-    # end
-    #
-    # sample '"wrong_field" => "neither"' do
-    #   expect(subject["wrong_field"]).to eq("neither")
-    # end
   end
 
   describe "gsub on a String" do
