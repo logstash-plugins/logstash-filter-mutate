@@ -64,10 +64,12 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # If the field is a hash, no action will be taken.
   #
   # If the conversion type is `boolean`, the acceptable values are:
-  # **True:** `true`, `t`, `yes`, `y`, and `1`
-  # **False:** `false`, `f`, `no`, `n`, and `0`
-  # "true" and "false".  If a value other than these is provided, it will
-  # pass straight through and log a warning message.
+  # 
+  # * **True:** `true`, `t`, `yes`, `y`, and `1`
+  # * **False:** `false`, `f`, `no`, `n`, and `0`
+  #
+  # If a value other than these is provided, it will pass straight through 
+  # and log a warning message.
   #
   # Valid conversion targets are: integer, float, string, and boolean.
   #
