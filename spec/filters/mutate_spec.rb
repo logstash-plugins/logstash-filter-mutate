@@ -108,6 +108,22 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "remove with dynamic fields (%{})" do
+    config '
+      filter {
+        mutate {
+          remove => [ "field_%{x}" ]
+        }
+      }'
+
+    sample(
+      "x" => "one",
+      "field_one" => "value"
+    ) do
+      reject { subject }.include?("field_one")
+    end
+  end
+
   describe "convert one field to string" do
     config '
       filter {
@@ -255,6 +271,36 @@ describe LogStash::Filters::Mutate do
     sample "whatever" do
       reject { subject }.include?("nosuchfield")
       reject { subject }.include?("hello")
+    end
+  end
+
+  describe "rename with dynamic origin field (%{})" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          rename => [ "field_%{x}", "destination" ]
+        }
+      }
+    CONFIG
+
+    sample("field_one" => "value", "x" => "one") do
+      reject { subject }.include?("field_one")
+      insist { subject }.include?("destination")
+    end
+  end
+
+  describe "rename with dynamic destination field (%{})" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          rename => [ "origin", "field_%{x}" ]
+        }
+      }
+    CONFIG
+
+    sample("field_one" => "value", "x" => "one") do
+      reject { subject }.include?("origin")
+      insist { subject }.include?("field_one")
     end
   end
 

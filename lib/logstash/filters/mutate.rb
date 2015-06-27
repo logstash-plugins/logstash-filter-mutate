@@ -62,11 +62,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # If the field is a hash, no action will be taken.
   #
   # If the conversion type is `boolean`, the acceptable values are:
-  # 
+  #
   # * **True:** `true`, `t`, `yes`, `y`, and `1`
   # * **False:** `false`, `f`, `no`, `n`, and `0`
   #
-  # If a value other than these is provided, it will pass straight through 
+  # If a value other than these is provided, it will pass straight through
   # and log a warning message.
   #
   # Valid conversion targets are: integer, float, string, and boolean.
@@ -226,16 +226,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   private
   def remove(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @remove.each do |field|
+      field = event.sprintf(field)
       event.remove(field)
     end
   end # def remove
 
   private
   def rename(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @rename.each do |old, new|
+      old = event.sprintf(old)
+      new = event.sprintf(new)
       next unless event.include?(old)
       event[new] = event.remove(old)
     end
