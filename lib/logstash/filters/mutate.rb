@@ -226,16 +226,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   private
   def remove(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @remove.each do |field|
+      field = event.sprintf(field)
       event.remove(field)
     end
   end # def remove
 
   private
   def rename(event)
-    # TODO(sissel): use event.sprintf on the field names?
     @rename.each do |old, new|
+      old = event.sprintf(old)
+      new = event.sprintf(new)
       next unless event.include?(old)
       event[new] = event.remove(old)
     end
