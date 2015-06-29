@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/filters/base"
 require "logstash/namespace"
+require "logstash/event"
 
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, remove, replace, and modify fields in your events.
@@ -33,6 +34,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # filters.
   config :remove, :validate => :array, :deprecated => true
 
+  # Select only the specified fields.
+  #
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #         select => [ "message", "subject" ]  # Removes all the fields except message and subject
+  #       }
+  #     }
+  config :select, :validate => :array
+
   # Replace a field with a new value. The new value can include %{foo} strings
   # to help you build a new value from other parts of the event.
   #
@@ -62,11 +74,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # If the field is a hash, no action will be taken.
   #
   # If the conversion type is `boolean`, the acceptable values are:
-  # 
+  #
   # * **True:** `true`, `t`, `yes`, `y`, and `1`
   # * **False:** `false`, `f`, `no`, `n`, and `0`
   #
-  # If a value other than these is provided, it will pass straight through 
+  # If a value other than these is provided, it will pass straight through
   # and log a warning message.
   #
   # Valid conversion targets are: integer, float, string, and boolean.
@@ -217,6 +229,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     lowercase(event) if @lowercase
     strip(event) if @strip
     remove(event) if @remove
+    select(event) if @select
     split(event) if @split
     join(event) if @join
     merge(event) if @merge
@@ -231,6 +244,21 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       event.remove(field)
     end
   end # def remove
+
+  private
+  def select(event)
+    replacement = LogStash::Event.new
+    # Keep the meta data
+    replacement[LogStash::Event::TIMESTAMP] = event[LogStash::Event::TIMESTAMP]
+    replacement[LogStash::Event::VERSION] = event[LogStash::Event::VERSION]
+
+    @select.each do |field|
+      field = event.sprintf(field)
+      next unless event.include?(field)
+      replacement[field] = event[field]
+    end
+    event.overwrite(replacement)
+  end # def select
 
   private
   def rename(event)
