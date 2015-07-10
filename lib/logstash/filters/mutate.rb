@@ -342,9 +342,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def uppercase(event)
     @uppercase.each do |field|
       if event[field].is_a?(Array)
-        event[field].each { |v| v.upcase! }
+        event[field].each { |v| v = v.force_encoding("ISO-8859-1").upcase }
       elsif event[field].is_a?(String)
-        event[field].upcase!
+        event[field] = event[field].force_encoding("ISO-8859-1").upcase
       else
         @logger.debug("Can't uppercase something that isn't a string",
                       :field => field, :value => event[field])
@@ -356,9 +356,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def lowercase(event)
     @lowercase.each do |field|
       if event[field].is_a?(Array)
-        event[field].each { |v| v.downcase! }
+        event[field].each { |v| v = v.force_encoding("ISO-8859-1").downcase }
       elsif event[field].is_a?(String)
-        event[field].downcase!
+        event[field] = event[field].force_encoding("ISO-8859-1").downcase
       else
         @logger.debug("Can't lowercase something that isn't a string",
                       :field => field, :value => event[field])
