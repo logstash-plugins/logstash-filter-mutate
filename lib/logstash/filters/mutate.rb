@@ -265,6 +265,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       if original.nil?
         next
       elsif original.is_a?(Hash)
+        event.tag("_mutateparsefailure")
         @logger.debug("I don't know how to type convert a hash, skipping",
                       :field => field, :value => original)
         next
@@ -319,6 +320,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         end
       else
         if not event[field].is_a?(String)
+          event.tag("_mutateparsefailure")
           @logger.debug("gsub mutation is only applicable for Strings, " +
                         "skipping", :field => field, :value => event[field])
           next
@@ -346,6 +348,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       elsif event[field].is_a?(String)
         event[field].upcase!
       else
+        event.tag("_mutateparsefailure")
         @logger.debug("Can't uppercase something that isn't a string",
                       :field => field, :value => event[field])
       end
@@ -360,6 +363,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       elsif event[field].is_a?(String)
         event[field].downcase!
       else
+        event.tag("_mutateparsefailure")
         @logger.debug("Can't lowercase something that isn't a string",
                       :field => field, :value => event[field])
       end
@@ -372,6 +376,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       if event[field].is_a?(String)
         event[field] = event[field].split(separator)
       else
+        event.tag("_mutateparsefailure")
         @logger.debug("Can't split something that isn't a string",
                       :field => field, :value => event[field])
       end
