@@ -23,7 +23,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        insist {subject}.raises LogStash::ConfigurationError
+        expect {subject}.to raise_error LogStash::ConfigurationError
       end
     end
     describe "invalid gsub triad should raise a configuration error" do
@@ -36,7 +36,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        insist {subject}.raises LogStash::ConfigurationError
+        expect {subject}.to raise_error LogStash::ConfigurationError
       end
     end
   end
@@ -70,18 +70,18 @@ describe LogStash::Filters::Mutate do
     }
 
     sample event do
-      insist { subject["lowerme"] } == ['example']
-      insist { subject["upperme"] } == ['EXAMPLE']
-      insist { subject["intme"] }   == [1234, 7890, 7]
-      insist { subject["floatme"] } == [1234.455]
-      reject { subject }.include?("rename1")
-      insist { subject["rename2"] } == [ "hello world" ]
-      reject { subject }.include?("removeme")
+      expect(subject["lowerme"]).to eq ['example']
+      expect(subject["upperme"]).to eq ['EXAMPLE']
+      expect(subject["intme"] ).to eq [1234, 7890, 7]
+      expect(subject["floatme"]).to eq [1234.455]
+      expect(subject).not_to include("rename1")
+      expect(subject["rename2"]).to eq [ "hello world" ]
+      expect(subject).not_to include("removeme")
 
-      insist { subject }.include?("newfield")
-      insist { subject["newfield"] } == "newnew"
-      reject { subject }.include?("nosuchfield")
-      insist { subject["updateme"] } == "updated"
+      expect(subject).to include("newfield")
+      expect(subject["newfield"]).to eq "newnew"
+      expect(subject).not_to include("nosuchfield")
+      expect(subject["updateme"]).to eq "updated"
     end
   end
 
@@ -100,11 +100,12 @@ describe LogStash::Filters::Mutate do
       "survivor"   => "Hello.",
       "one" => { "two" => "wee" }
     ) do
-      insist { subject["survivor"] } == "Hello."
-      reject { subject }.include?("remove-me")
-      reject { subject }.include?("remove-me2")
-      reject { subject }.include?("diedie")
-      reject { subject["one"] }.include?("two")
+      expect(subject["survivor"]).to eq "Hello."
+
+      expect(subject).not_to include("remove-me")
+      expect(subject).not_to include("remove-me2")
+      expect(subject).not_to include("diedie")
+      expect(subject["one"]).not_to include("two")
     end
   end
 
@@ -117,7 +118,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => 1234) do
-      insist { subject["unicorns"] } == "1234"
+      expect(subject["unicorns"]).to eq "1234"
     end
   end
 
@@ -176,7 +177,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => "Magnificient, but extinct, animals") do
-      insist { subject["unicorns"] } == "Magnificient, and common, animals"
+      expect(subject["unicorns"]).to eq "Magnificient, and common, animals"
     end
   end
 
@@ -191,7 +192,7 @@ describe LogStash::Filters::Mutate do
     sample("unicorns" => [
       "Magnificient extinct animals", "Other extinct ideas" ]
     ) do
-      insist { subject["unicorns"] } == [
+      expect(subject["unicorns"]).to eq [
         "Magnificient common animals",
         "Other common ideas"
       ]
@@ -208,8 +209,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("colors" => "One red car", "shapes" => "Four red squares") do
-      insist { subject["colors"] } == "One blue car"
-      insist { subject["shapes"] } == "Four red circles"
+      expect(subject["colors"]).to eq "One blue car"
+      expect(subject["shapes"]).to eq "Four red circles"
     end
   end
 
@@ -222,7 +223,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("colors" => "red3") do
-      insist { subject["colors"] } == "redblue"
+      expect(subject["colors"]).to eq "redblue"
     end
   end
 
@@ -239,7 +240,7 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample "HELLO WORLD" do
-      insist { subject["foo"] } == "hello"
+      expect(subject["foo"]).to eq "hello"
     end
   end
 
@@ -253,8 +254,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample "whatever" do
-      reject { subject }.include?("nosuchfield")
-      reject { subject }.include?("hello")
+      expect(subject).not_to include("nosuchfield")
+      expect(subject).not_to include("hello")
     end
   end
 
@@ -268,8 +269,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample({ "foo" => { "bar" => "1000" } }) do
-      insist { subject["[foo][bar]"] } == 1000
-      insist { subject["[foo][bar]"] }.is_a?(Fixnum)
+      expect(subject["[foo][bar]"]).to eq 1000
+      expect(subject["[foo][bar]"]).to be_a(Fixnum)
     end
   end
 
@@ -283,8 +284,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample({ "foo" => ["100", "200"] }) do
-      insist { subject["[foo][0]"] } == 100
-      insist { subject["[foo][0]"] }.is_a?(Fixnum)
+      expect(subject["[foo][0]"]).to eq 100
+      expect(subject["[foo][0]"]).to be_a(Fixnum)
     end
   end
 
@@ -298,7 +299,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => "Unicorns of type blue are common", "unicorn_type" => "blue") do
-      insist { subject["unicorns"] } == "Unicorns green are common"
+      expect(subject["unicorns"]).to eq "Unicorns green are common"
     end
   end
 
@@ -312,7 +313,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns2" => "Unicorns of type blue are common", "unicorn_color" => "blue") do
-      insist { subject["unicorns2"] } == "Unicorns blue and green are common"
+      expect(subject["unicorns2"]).to eq "Unicorns blue and green are common"
     end
   end
 
@@ -329,7 +330,7 @@ describe LogStash::Filters::Mutate do
         "Unicorns of type blue are found in Alaska", "Unicorns of type blue are extinct" ],
            "color" => "blue"
     ) do
-      insist { subject["unicorns_array"] } == [
+      expect(subject["unicorns_array"]).to eq [
           "Unicorns blue and green are found in Alaska",
           "Unicorns blue and green are extinct"
       ]
@@ -345,8 +346,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar") do
-      insist { subject["list"] } == ["bar"]
-      insist { subject["foo"] } == "bar"
+      expect(subject["list"]).to eq ["bar"]
+      expect(subject["foo"]).to eq "bar"
     end
   end
 
@@ -359,8 +360,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => []) do
-      insist { subject["list"] } == ["bar"]
-      insist { subject["foo"] } == "bar"
+      expect(subject["list"]).to eq ["bar"]
+      expect(subject["foo"]).to eq "bar"
     end
   end
 
@@ -373,8 +374,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => ["baz"]) do
-      insist { subject["list"] } == ["baz", "bar"]
-      insist { subject["foo"] } == "bar"
+      expect(subject["list"]).to eq ["baz", "bar"]
+      expect(subject["foo"]).to eq "bar"
     end
   end
 
@@ -387,8 +388,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => ["bar"], "list" => ["baz"]) do
-      insist { subject["list"] } == ["baz", "bar"]
-      insist { subject["foo"] } == ["bar"]
+      expect(subject["list"]).to eq ["baz", "bar"]
+      expect(subject["foo"]).to eq ["bar"]
     end
   end
 
@@ -401,8 +402,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => [], "list" => ["baz"]) do
-      insist { subject["list"] } == ["baz"]
-      insist { subject["foo"] } == []
+      expect(subject["list"]).to eq ["baz"]
+      expect(subject["foo"]).to eq []
     end
   end
 
@@ -415,8 +416,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => ["bar"], "list" => "baz") do
-      insist { subject["list"] } == ["baz", "bar"]
-      insist { subject["foo"] } == ["bar"]
+      expect(subject["list"]).to eq ["baz", "bar"]
+      expect(subject["foo"]).to eq ["bar"]
     end
   end
 
@@ -429,8 +430,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => "baz") do
-      insist { subject["list"] } == ["baz", "bar"]
-      insist { subject["foo"] } == "bar"
+      expect(subject["list"]).to eq ["baz", "bar"]
+      expect(subject["foo"]).to eq "bar"
     end
   end
 
