@@ -62,11 +62,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # If the field is a hash, no action will be taken.
   #
   # If the conversion type is `boolean`, the acceptable values are:
-  # 
+  #
   # * **True:** `true`, `t`, `yes`, `y`, and `1`
   # * **False:** `false`, `f`, `no`, `n`, and `0`
   #
-  # If a value other than these is provided, it will pass straight through 
+  # If a value other than these is provided, it will pass straight through
   # and log a warning message.
   #
   # Valid conversion targets are: integer, float, string, and boolean.
@@ -341,30 +341,37 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   private
   def uppercase(event)
     @uppercase.each do |field|
-      if event[field].is_a?(Array)
-        event[field].each { |v| v.upcase! }
-      elsif event[field].is_a?(String)
-        event[field].upcase!
-      else
-        @logger.debug("Can't uppercase something that isn't a string",
-                      :field => field, :value => event[field])
-      end
+      original = event[field]
+      event[field] = case original
+        when Array
+          original.map(&:upcase!)
+        when String
+          original.upcase!
+        else
+          @logger.debug("Can't uppercase something that isn't a string",
+                        :field => field, :value => original)
+          original
+        end
     end
   end # def uppercase
 
   private
   def lowercase(event)
     @lowercase.each do |field|
-      if event[field].is_a?(Array)
-        event[field].each { |v| v.downcase! }
-      elsif event[field].is_a?(String)
-        event[field].downcase!
-      else
-        @logger.debug("Can't lowercase something that isn't a string",
-                      :field => field, :value => event[field])
-      end
+      original = event[field]
+      event[field] = case original
+        when Array
+          original.map(&:downcase!)
+        when String
+          original.downcase!
+        else
+          @logger.debug("Can't lowercase something that isn't a string",
+                        :field => field, :value => original)
+          original
+        end
     end
   end # def lowercase
+
 
   private
   def split(event)
