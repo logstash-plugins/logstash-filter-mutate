@@ -260,13 +260,14 @@ module LogStash module Filters class Mutate < LogStash::Filters::Base
       original = event[field]
       # calls convert_{string,integer,float,boolean} depending on type requested.
       converter = method("convert_" + type)
-      if original.nil?
+      case original
+      when nil
         next
-      elsif original.is_a?(Hash)
+      when Hash
         @logger.debug("I don't know how to type convert a hash, skipping",
                       :field => field, :value => original)
         next
-      elsif original.is_a?(Array)
+      when Array
         value = original.map { |v| converter.call(v) }
       else
         value = converter.call(original)
@@ -303,24 +304,24 @@ module LogStash module Filters class Mutate < LogStash::Filters::Base
       field = config[:field]
       needle = config[:needle]
       replacement = config[:replacement]
-
-      if event[field].is_a?(Array)
-        event[field] = event[field].map do |v|
-          if not v.is_a?(String)
+      original = event[field]
+      if original.is_a?(Array)
+        event[field] = original.map do |v|
+          if v.is_a?(String)
+            gsub_dynamic_fields(event, v, needle, replacement)
+          else
             @logger.warn("gsub mutation is only applicable for Strings, " +
                           "skipping", :field => field, :value => v)
             v
-          else
-            gsub_dynamic_fields(event, v, needle, replacement)
           end
         end
       else
-        if not event[field].is_a?(String)
+        if !original.is_a?(String)
           @logger.debug("gsub mutation is only applicable for Strings, " +
-                        "skipping", :field => field, :value => event[field])
+                        "skipping", :field => field, :value => original)
           next
         end
-        event[field] = gsub_dynamic_fields(event, event[field], needle, replacement)
+        event[field] = gsub_dynamic_fields(event, original, needle, replacement)
       end
     end # @gsub_parsed.each
   end # def gsub
@@ -335,6 +336,14 @@ module LogStash module Filters class Mutate < LogStash::Filters::Base
   end
 
   def uppercase(event)
+    # Issue-33
+    # In some cases the event@data is not a real Hash
+    # it is a Java HashMap<String, Object> wrapped in a JavaProxy
+    # the JavaProxy has #[] method that retrieves the Java Object
+    # from the HashMap and wraps it or converts it to a RubyObject
+    # If you mutate this object, you are not mutating the original
+    # Object in the HashMap. You need to restore this derived object
+    # in the HashMap, hence the get, mutate then set pattern.
     @uppercase.each do |field|
       original = event[field]
       event[field] = case original
