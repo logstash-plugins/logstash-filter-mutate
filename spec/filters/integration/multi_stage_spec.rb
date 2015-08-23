@@ -34,7 +34,7 @@ describe LogStash::Filters::Mutate do
 
   describe 'MUTATE-33: multi stage with json, grok and mutate, Case mutation' do
     let(:event) do
-      "{\"message\":\"hello WORLD\",\"examplefield\":\"PPQQRRSS\"}"
+      "{\"message\":\"hello WORLD\",\"lower1\":\"PPQQRRSS\",\"lower2\":\"pppqqq\"}"
     end
 
     let(:config) do
@@ -46,7 +46,7 @@ filter {
         singles => true
     }
     mutate {
-      lowercase => [ "bar", "examplefield" ]
+      lowercase => [ "bar", "lower1", "lower2" ]
     }
 }
 CONFIG
@@ -57,9 +57,14 @@ CONFIG
       expect(result["bar"]).to eq('world')
     end
 
-    it 'change case of the target, examplefield value is lowercase' do
+    it 'change case of the target, lower1 value is lowercase' do
       result = results.first
-      expect(result["examplefield"]).to eq("ppqqrrss")
+      expect(result["lower1"]).to eq("ppqqrrss")
+    end
+
+    it 'change case of the target, lower2 value is lowercase' do
+      result = results.first
+      expect(result["lower2"]).to eq("pppqqq")
     end
 
   end
