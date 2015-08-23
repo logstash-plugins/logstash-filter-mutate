@@ -357,7 +357,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           @logger.debug("Can't uppercase something that isn't a string",
                         :field => field, :value => original)
           original
-      end
+        end
     end
   end # def uppercase
 
