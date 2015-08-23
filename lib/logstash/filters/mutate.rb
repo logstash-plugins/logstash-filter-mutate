@@ -342,28 +342,35 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def uppercase(event)
     @uppercase.each do |field|
       original = event[field]
+      # in certain cases JRuby returns a proxy wrapper of the event[field] value
+      # therefore we can't assume that we are modifying the actual value behind
+      # the key so read, modify and overwrite
       event[field] = case original
         when Array
-          original.map(&:upcase!)
+          # can't map upcase! as it replaces an already upcase value with nil
+          # ["ABCDEF"].map(&:upcase!) => [nil]
+          original.map(&:upcase)
         when String
-          original.upcase!
+          # nil means no change was made to the String
+          original.upcase! || original
         else
           @logger.debug("Can't uppercase something that isn't a string",
                         :field => field, :value => original)
           original
-        end
+      end
     end
   end # def uppercase
 
   private
   def lowercase(event)
+    #see comments for #uppercase
     @lowercase.each do |field|
       original = event[field]
       event[field] = case original
         when Array
-          original.map(&:downcase!)
+          original.map(&:downcase)
         when String
-          original.downcase!
+          original.downcase! || original
         else
           @logger.debug("Can't lowercase something that isn't a string",
                         :field => field, :value => original)
