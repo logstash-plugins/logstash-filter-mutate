@@ -45,8 +45,8 @@ describe LogStash::Filters::Mutate do
     config <<-CONFIG
       filter {
         mutate {
-          lowercase => "lowerme"
-          uppercase => "upperme"
+          lowercase => ["lowerme","Lowerme", "lowerMe"]
+          uppercase => ["upperme", "Upperme", "upperMe"]
           convert => [ "intme", "integer", "floatme", "float" ]
           rename => [ "rename1", "rename2" ]
           replace => [ "replaceme", "hello world" ]
@@ -59,8 +59,12 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     event = {
-      "lowerme" => [ "ExAmPlE" ],
-      "upperme" => [ "ExAmPlE" ],
+      "lowerme" => "example",
+      "upperme" => "EXAMPLE",
+      "Lowerme" => "ExAmPlE",
+      "Upperme" => "ExAmPlE",
+      "lowerMe" => [ "ExAmPlE", "example" ],
+      "upperMe" => [ "ExAmPlE", "EXAMPLE" ],
       "intme" => [ "1234", "7890.4", "7.9" ],
       "floatme" => [ "1234.455" ],
       "rename1" => [ "hello world" ],
@@ -70,8 +74,12 @@ describe LogStash::Filters::Mutate do
     }
 
     sample event do
-      expect(subject["lowerme"]).to eq ['example']
-      expect(subject["upperme"]).to eq ['EXAMPLE']
+      expect(subject["lowerme"]).to eq 'example'
+      expect(subject["upperme"]).to eq 'EXAMPLE'
+      expect(subject["Lowerme"]).to eq 'example'
+      expect(subject["Upperme"]).to eq 'EXAMPLE'
+      expect(subject["lowerMe"]).to eq ['example', 'example']
+      expect(subject["upperMe"]).to eq ['EXAMPLE', 'EXAMPLE']
       expect(subject["intme"] ).to eq [1234, 7890, 7]
       expect(subject["floatme"]).to eq [1234.455]
       expect(subject).not_to include("rename1")
