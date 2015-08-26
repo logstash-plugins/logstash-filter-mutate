@@ -93,6 +93,28 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "case handling of multibyte unicode strings will only change ASCII" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          lowercase => ["lowerme"]
+          uppercase => ["upperme"]
+        }
+      }
+    CONFIG
+
+    event = {
+      "lowerme" => [ "АБВГД\0MMM", "こにちわ", "XyZółć"],
+      "upperme" => [ "аБвгд\0mmm", "こにちわ", "xYzółć"],
+    }
+
+    sample event do
+      # ATM, only the ASCII characters will case change
+      expect(subject["lowerme"]).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć"]
+      expect(subject["upperme"]).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć"]
+    end
+  end
+
   describe "remove multiple fields" do
     config '
       filter {
