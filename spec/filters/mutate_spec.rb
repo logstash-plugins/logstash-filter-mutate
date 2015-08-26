@@ -104,14 +104,14 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     event = {
-      "lowerme" => [ "АБВГД\0MMM", "こにちわ", "XyZółć"],
-      "upperme" => [ "аБвгд\0mmm", "こにちわ", "xYzółć"],
+      "lowerme" => [ "АБВГД\0MMM", "こにちわ", "XyZółć", "NÎcË GÛŸ"],
+      "upperme" => [ "аБвгд\0mmm", "こにちわ", "xYzółć", "Nîcë gûÿ"],
     }
 
     sample event do
       # ATM, only the ASCII characters will case change
-      expect(subject["lowerme"]).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć"]
-      expect(subject["upperme"]).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć"]
+      expect(subject["lowerme"]).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
+      expect(subject["upperme"]).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
     end
   end
 
