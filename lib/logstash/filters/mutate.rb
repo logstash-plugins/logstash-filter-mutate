@@ -176,15 +176,18 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :merge, :validate => :hash
 
+  def initialize
+    @valid_conversions = %w(string integer float boolean)
+  end
+
   public
   def register
-    valid_conversions = %w(string integer float boolean)
     # TODO(sissel): Validate conversion requests if provided.
     @convert.nil? or @convert.each do |field, type|
-      if !valid_conversions.include?(type)
+      if !@valid_conversions.include?(type)
         raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register",
           :plugin => "filter", :type => "mutate",
-          :error => "Invalid conversion type '#{type}', expected one of '#{valid_conversions.join(',')}'")
+          :error => "Invalid conversion type '#{type}', expected one of '#{@valid_conversions.join(',')}'")
       end
     end # @convert.each
 
