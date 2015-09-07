@@ -10,6 +10,55 @@ unless LogStash::Environment.const_defined?(:LOGSTASH_HOME)
   LogStash::Environment::LOGSTASH_HOME = File.expand_path("../../../", __FILE__)
 end
 
+
+describe LogStash::Filters::Mutate do
+
+  let(:config) { {} }
+  subject      { LogStash::Filters::Mutate.new(config) }
+
+  let(:attrs) { { } }
+  let(:event) { LogStash::Event.new(attrs) }
+
+  before(:each) do
+    subject.register
+  end
+
+  context "when doing uppercase of an array" do
+
+    let(:config) do
+      { "uppercase" => ["array_of"] }
+    end
+
+    let(:attrs) { { "array_of" => ["a", 2, "C"] } }
+
+    it "should uppercase not raise an error" do
+      expect { subject.filter(event) }.not_to raise_error
+    end
+
+    it "should convert only string elements" do
+      expect(event["array_of"]).to eq(["A", 2, "C"])
+    end
+  end
+
+  context "when doing lowercase of an array" do
+
+    let(:config) do
+      { "lowercase" => ["array_of"] }
+    end
+
+    let(:attrs) { { "array_of" => ["a", 2, "C"] } }
+
+    it "should uppercase all string elements" do
+      expect { subject.filter(event) }.not_to raise_error
+    end
+
+    it "should convert only string elements" do
+      expect(event["array_of"]).to eq(["a", 2, "c"])
+    end
+  end
+
+end
+
 describe LogStash::Filters::Mutate do
 
   context "config validation" do
