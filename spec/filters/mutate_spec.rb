@@ -12,6 +12,49 @@ end
 
 describe LogStash::Filters::Mutate do
 
+  let(:config) { {} }
+  subject      { LogStash::Filters::Mutate.new(config) }
+
+  let(:attrs) { { } }
+  let(:event) { LogStash::Event.new(attrs) }
+
+  before(:each) do
+    subject.register
+  end
+
+  describe "#strip" do
+
+    let(:config) do
+      { "strip" => ["path"] }
+    end
+
+    let(:attrs) { { "path" => " /store.php " } }
+
+    it "should cleam trailing spaces" do
+      subject.filter(event)
+      expect(event["path"]).to eq("/store.php")
+    end
+
+    context "when converting multiple attributed at once" do
+
+      let(:config) do
+        { "strip" => ["foo", "bar"] }
+      end
+
+      let(:attrs) { { "foo" => " /bar.php ", "bar" => " foo" } }
+
+      it "should cleam trailing spaces" do
+        subject.filter(event)
+        expect(event["foo"]).to eq("/bar.php")
+        expect(event["bar"]).to eq("foo")
+      end
+    end
+  end
+
+end
+
+describe LogStash::Filters::Mutate do
+
   context "config validation" do
    describe "invalid convert type should raise a configuration error" do
       config <<-CONFIG
