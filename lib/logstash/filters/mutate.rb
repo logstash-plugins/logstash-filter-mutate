@@ -350,7 +350,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         when Array
           # can't map upcase! as it replaces an already upcase value with nil
           # ["ABCDEF"].map(&:upcase!) => [nil]
-          original.map(&:upcase)
+          original.map do |elem|
+           (elem.is_a?(String) ? elem.upcase : elem)
+          end
         when String
           # nil means no change was made to the String
           original.upcase! || original
@@ -369,7 +371,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       original = event[field]
       event[field] = case original
         when Array
-          original.map(&:downcase)
+          original.map! do |elem|
+            (elem.is_a?(String) ? elem.downcase : elem)
+          end
         when String
           original.downcase! || original
         else
