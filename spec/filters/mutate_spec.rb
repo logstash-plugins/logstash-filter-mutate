@@ -36,6 +36,7 @@ describe LogStash::Filters::Mutate do
     end
 
     it "should convert only string elements" do
+      subject.filter(event)
       expect(event["array_of"]).to eq(["A", 2, "C"])
     end
   end
@@ -48,11 +49,12 @@ describe LogStash::Filters::Mutate do
 
     let(:attrs) { { "array_of" => ["a", 2, "C"] } }
 
-    it "should uppercase all string elements" do
+    it "should lowercase all string elements" do
       expect { subject.filter(event) }.not_to raise_error
     end
 
     it "should convert only string elements" do
+      subject.filter(event)
       expect(event["array_of"]).to eq(["a", 2, "c"])
     end
   end
