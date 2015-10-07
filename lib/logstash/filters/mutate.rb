@@ -206,7 +206,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   public
   def filter(event)
-    return unless filter?(event)
+    
 
     rename(event) if @rename
     update(event) if @update
