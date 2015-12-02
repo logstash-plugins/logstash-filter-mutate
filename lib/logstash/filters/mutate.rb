@@ -176,24 +176,33 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :merge, :validate => :hash
 
-  public
+  TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
+  FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
+  CONVERT_PREFIX = "convert_".freeze
+
   def register
     valid_conversions = %w(string integer float boolean)
     # TODO(sissel): Validate conversion requests if provided.
     @convert.nil? or @convert.each do |field, type|
       if !valid_conversions.include?(type)
-        raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register",
-          :plugin => "filter", :type => "mutate",
-          :error => "Invalid conversion type '#{type}', expected one of '#{valid_conversions.join(',')}'")
+        raise LogStash::ConfigurationError, I18n.t(
+          "logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter",
+          :type => "mutate",
+          :error => "Invalid conversion type '#{type}', expected one of '#{valid_conversions.join(',')}'"
+        )
       end
-    end # @convert.each
+    end
 
     @gsub_parsed = []
     @gsub.nil? or @gsub.each_slice(3) do |field, needle, replacement|
       if [field, needle, replacement].any? {|n| n.nil?}
-        raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register",
-          :plugin => "filter", :type => "mutate",
-          :error => "Invalid gsub configuration #{[field, needle, replacement]}. gsub requires 3 non-nil elements per config entry")
+        raise LogStash::ConfigurationError, I18n.t(
+          "logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter",
+          :type => "mutate",
+          :error => "Invalid gsub configuration #{[field, needle, replacement]}. gsub requires 3 non-nil elements per config entry"
+        )
       end
 
       @gsub_parsed << {
@@ -202,12 +211,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         :replacement  => replacement
       }
     end
-  end # def register
+  end
 
-  public
   def filter(event)
-    
-
     rename(event) if @rename
     update(event) if @update
     replace(event) if @replace
@@ -222,17 +228,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     merge(event) if @merge
 
     filter_matched(event)
-  end # def filter
+  end
 
   private
+
   def remove(event)
     @remove.each do |field|
       field = event.sprintf(field)
       event.remove(field)
     end
-  end # def remove
+  end
 
-  private
   def rename(event)
     @rename.each do |old, new|
       old = event.sprintf(old)
@@ -240,98 +246,94 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       next unless event.include?(old)
       event[new] = event.remove(old)
     end
-  end # def rename
+  end
 
-  private
   def update(event)
     @update.each do |field, newvalue|
       next unless event.include?(field)
       event[field] = event.sprintf(newvalue)
     end
-  end # def update
+  end
 
-  private
   def replace(event)
     @replace.each do |field, newvalue|
       event[field] = event.sprintf(newvalue)
     end
-  end # def replace
+  end
 
   def convert(event)
     @convert.each do |field, type|
       next unless event.include?(field)
       original = event[field]
       # calls convert_{string,integer,float,boolean} depending on type requested.
-      converter = method("convert_" + type)
-      if original.nil?
-        next
-      elsif original.is_a?(Hash)
-        @logger.debug("I don't know how to type convert a hash, skipping",
-                      :field => field, :value => original)
-        next
-      elsif original.is_a?(Array)
-        value = original.map { |v| converter.call(v) }
+      converter = method(CONVERT_PREFIX + type)
+
+      case original
+      when Hash
+        @logger.debug? && @logger.debug("I don't know how to type convert a hash, skipping", :field => field, :value => original)
+      when Array
+        event[field] = original.map { |v| converter.call(v) }
+      when NilClass
+        # ignore
       else
-        value = converter.call(original)
+        event[field] = converter.call(original)
       end
-      event[field] = value
     end
-  end # def convert
+  end
 
   def convert_string(value)
     # since this is a filter and all inputs should be already UTF-8
     # we wont check valid_encoding? but just force UTF-8 for
     # the Fixnum#to_s case which always result in US-ASCII
+    # also not that force_encoding checks current encoding against the
+    # target encoding and only change if necessary, so calling
+    # valid_encoding? is redundant
     # see https://twitter.com/jordansissel/status/444613207143903232
-    return value.to_s.force_encoding(Encoding::UTF_8)
-  end # def convert_string
+    value.to_s.force_encoding(Encoding::UTF_8)
+  end
 
   def convert_integer(value)
-    return value.to_i
-  end # def convert_integer
+    value.to_i
+  end
 
   def convert_float(value)
-    return value.to_f
-  end # def convert_float
+    value.to_f
+  end
 
   def convert_boolean(value)
-    return true if value =~ (/^(true|t|yes|y|1)$/i)
-    return false if value.empty? || value =~ (/^(false|f|no|n|0)$/i)
+    return true if value =~ TRUE_REGEX
+    return false if value.empty? || value =~ FALSE_REGEX
     @logger.warn("Failed to convert #{value} into boolean.")
-    return value
-  end # def convert_boolean
+    value
+  end
 
-  private
   def gsub(event)
     @gsub_parsed.each do |config|
       field = config[:field]
       needle = config[:needle]
       replacement = config[:replacement]
 
-      if event[field].is_a?(Array)
-        event[field] = event[field].map do |v|
-          if not v.is_a?(String)
-            @logger.warn("gsub mutation is only applicable for Strings, " +
-                          "skipping", :field => field, :value => v)
-            v
-          else
+      value = event[field]
+      case value
+      when Array
+        event[field] = value.map do |v|
+          if v.is_a?(String)
             gsub_dynamic_fields(event, v, needle, replacement)
+          else
+            @logger.warn("gsub mutation is only applicable for Strings, skipping", :field => field, :value => v)
+            v
           end
         end
+      when String
+        event[field] = gsub_dynamic_fields(event, value, needle, replacement)
       else
-        if not event[field].is_a?(String)
-          @logger.debug("gsub mutation is only applicable for Strings, " +
-                        "skipping", :field => field, :value => event[field])
-          next
-        end
-        event[field] = gsub_dynamic_fields(event, event[field], needle, replacement)
+        @logger.debug? && @logger.debug("gsub mutation is only applicable for Strings, skipping", :field => field, :value => event[field])
       end
-    end # @gsub_parsed.each
-  end # def gsub
+    end
+  end
 
-  private
   def gsub_dynamic_fields(event, original, needle, replacement)
-    if needle.is_a? Regexp
+    if needle.is_a?(Regexp)
       original.gsub(needle, event.sprintf(replacement))
     else
       # we need to replace any dynamic fields
@@ -339,7 +341,6 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     end
   end
 
-  private
   def uppercase(event)
     @uppercase.each do |field|
       original = event[field]
@@ -347,95 +348,95 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       # therefore we can't assume that we are modifying the actual value behind
       # the key so read, modify and overwrite
       event[field] = case original
-        when Array
-          # can't map upcase! as it replaces an already upcase value with nil
-          # ["ABCDEF"].map(&:upcase!) => [nil]
-          original.map do |elem|
-           (elem.is_a?(String) ? elem.upcase : elem)
-          end
-        when String
-          # nil means no change was made to the String
-          original.upcase! || original
-        else
-          @logger.debug("Can't uppercase something that isn't a string",
-                        :field => field, :value => original)
-          original
+      when Array
+        # can't map upcase! as it replaces an already upcase value with nil
+        # ["ABCDEF"].map(&:upcase!) => [nil]
+        original.map do |elem|
+          (elem.is_a?(String) ? elem.upcase : elem)
         end
+      when String
+        # nil means no change was made to the String
+        original.upcase! || original
+      else
+        @logger.debug? && @logger.debug("Can't uppercase something that isn't a string", :field => field, :value => original)
+        original
+      end
     end
-  end # def uppercase
+  end
 
-  private
   def lowercase(event)
     #see comments for #uppercase
     @lowercase.each do |field|
       original = event[field]
       event[field] = case original
-        when Array
-          original.map! do |elem|
-            (elem.is_a?(String) ? elem.downcase : elem)
-          end
-        when String
-          original.downcase! || original
-        else
-          @logger.debug("Can't lowercase something that isn't a string",
-                        :field => field, :value => original)
-          original
+      when Array
+        original.map! do |elem|
+          (elem.is_a?(String) ? elem.downcase : elem)
         end
+      when String
+        original.downcase! || original
+      else
+        @logger.debug? && @logger.debug("Can't lowercase something that isn't a string", :field => field, :value => original)
+        original
+      end
     end
-  end # def lowercase
+  end
 
-
-  private
   def split(event)
     @split.each do |field, separator|
-      if event[field].is_a?(String)
-        event[field] = event[field].split(separator)
+      value = event[field]
+      if value.is_a?(String)
+        event[field] = value.split(separator)
       else
-        @logger.debug("Can't split something that isn't a string",
-                      :field => field, :value => event[field])
+        @logger.debug? && @logger.debug("Can't split something that isn't a string", :field => field, :value => event[field])
       end
     end
   end
 
-  private
   def join(event)
     @join.each do |field, separator|
-      if event[field].is_a?(Array)
-        event[field] = event[field].join(separator)
+      value = event[field]
+      if value.is_a?(Array)
+        event[field] = value.join(separator)
       end
     end
   end
 
-  private
   def strip(event)
     @strip.each do |field|
-      if event[field].is_a?(Array)
-        event[field] = event[field].map{|s| s.strip }
-      elsif event[field].is_a?(String)
-        event[field] = event[field].strip
+      value = event[field]
+      case value
+      when Array
+        event[field] = value.map{|s| s.strip }
+      when String
+        event[field] = value.strip
       end
     end
   end
 
-  private
   def merge(event)
     @merge.each do |dest_field, added_fields|
       # When multiple calls, added_field is an array
+
+      dest_field_value = event[dest_field]
+
       Array(added_fields).each do |added_field|
-        if event[dest_field].is_a?(Hash) ^ event[added_field].is_a?(Hash)
+        added_field_value = event[added_field]
+
+        if dest_field_value.is_a?(Hash) ^ added_field_value.is_a?(Hash)
           @logger.error("Not possible to merge an array and a hash: ", :dest_field => dest_field, :added_field => added_field )
           next
         end
 
-        if event[dest_field].is_a?(Hash)
+        if dest_field_value.is_a?(Hash)
           # No need to test the other
-          event[dest_field].update(event[added_field])
+          event[dest_field].update(added_field_value)
         else
-          event[dest_field] = Array(event[dest_field])
-          event[dest_field].concat(Array(event[added_field]))
+          event[dest_field] = Array(dest_field_value)
+          event[dest_field].concat(Array(added_field_value))
         end
       end
     end
   end
 
-end # class LogStash::Filters::Mutate
+end
