@@ -428,12 +428,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           next
         end
 
+        # No need to test the other
         if dest_field_value.is_a?(Hash)
-          # No need to test the other
-          event[dest_field].update(added_field_value)
+          # do not use event[dest_field].update because the returned object from event[dest_field]
+          # can/will be a copy of the actual event data and directly updating it will not update
+          # the Event internal data. The updated value must be reassigned in the Event.
+          event[dest_field] = dest_field_value.update(added_field_value)
         else
-          event[dest_field] = Array(dest_field_value)
-          event[dest_field].concat(Array(added_field_value))
+          # do not use event[dest_field].concat because the returned object from event[dest_field]
+          # can/will be a copy of the actual event data and directly updating it will not update
+          # the Event internal data. The updated value must be reassigned in the Event.
+          event[dest_field] = Array(dest_field_value).concat(Array(added_field_value))
         end
       end
     end
