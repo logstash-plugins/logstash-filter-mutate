@@ -1,3 +1,5 @@
+# 2.0.6
+  - [Internal] Temp fix for patterns path in tests
 # 2.0.5
   - Depend on logstash-core-plugin-api instead of logstash-core, removing the need to mass update plugins on major releases of logstash
 # 2.0.4
