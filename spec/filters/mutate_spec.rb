@@ -72,6 +72,20 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  %w(lowercase uppercase).each do |operation|
+    context "executing #{operation} a non-existant field" do
+      let(:attrs) { }
+
+      let(:config) do
+        { operation => ["fake_field"] }
+      end
+
+      it "should not create that field" do
+        subject.filter(event)
+        expect(event).not_to include("fake_field")
+      end
+    end
+  end
 end
 
 describe LogStash::Filters::Mutate do
