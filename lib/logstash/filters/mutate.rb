@@ -343,6 +343,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   def uppercase(event)
     @uppercase.each do |field|
+      next unless event.include?(field)
       original = event[field]
       # in certain cases JRuby returns a proxy wrapper of the event[field] value
       # therefore we can't assume that we are modifying the actual value behind
@@ -367,6 +368,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def lowercase(event)
     #see comments for #uppercase
     @lowercase.each do |field|
+      next unless event.include?(field)
       original = event[field]
       event[field] = case original
       when Array
