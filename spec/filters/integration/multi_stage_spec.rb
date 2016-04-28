@@ -54,17 +54,17 @@ CONFIG
 
     it 'change case of the target, bar value is lowercase' do
       result = results.first
-      expect(result["bar"]).to eq('world')
+      expect(result.get("bar")).to eq('world')
     end
 
     it 'change case of the target, lower1 value is lowercase' do
       result = results.first
-      expect(result["lower1"]).to eq("ppqqrrss")
+      expect(result.get("lower1")).to eq("ppqqrrss")
     end
 
     it 'change case of the target, lower2 value is lowercase' do
       result = results.first
-      expect(result["lower2"]).to eq("pppqqq")
+      expect(result.get("lower2")).to eq("pppqqq")
     end
 
   end

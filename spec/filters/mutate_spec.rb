@@ -50,7 +50,7 @@ describe LogStash::Filters::Mutate do
 
     it "should convert only string elements" do
       subject.filter(event)
-      expect(event["array_of"]).to eq(["A", 2, "C"])
+      expect(event.get("array_of")).to eq(["A", 2, "C"])
     end
   end
 
@@ -68,7 +68,7 @@ describe LogStash::Filters::Mutate do
 
     it "should convert only string elements" do
       subject.filter(event)
-      expect(event["array_of"]).to eq(["a", 2, "c"])
+      expect(event.get("array_of")).to eq(["a", 2, "c"])
     end
   end
 
@@ -96,7 +96,7 @@ describe LogStash::Filters::Mutate do
 
     it "should cleam trailing spaces" do
       subject.filter(event)
-      expect(event["path"]).to eq("/store.php")
+      expect(event.get("path")).to eq("/store.php")
     end
 
     context "when converting multiple attributed at once" do
@@ -109,8 +109,8 @@ describe LogStash::Filters::Mutate do
 
       it "should cleam trailing spaces" do
         subject.filter(event)
-        expect(event["foo"]).to eq("/bar.php")
-        expect(event["bar"]).to eq("foo")
+        expect(event.get("foo")).to eq("/bar.php")
+        expect(event.get("bar")).to eq("foo")
       end
     end
   end
@@ -181,22 +181,22 @@ describe LogStash::Filters::Mutate do
     }
 
     sample event do
-      expect(subject["lowerme"]).to eq 'example'
-      expect(subject["upperme"]).to eq 'EXAMPLE'
-      expect(subject["Lowerme"]).to eq 'example'
-      expect(subject["Upperme"]).to eq 'EXAMPLE'
-      expect(subject["lowerMe"]).to eq ['example', 'example']
-      expect(subject["upperMe"]).to eq ['EXAMPLE', 'EXAMPLE']
-      expect(subject["intme"] ).to eq [1234, 7890, 7]
-      expect(subject["floatme"]).to eq [1234.455]
+      expect(subject.get("lowerme")).to eq 'example'
+      expect(subject.get("upperme")).to eq 'EXAMPLE'
+      expect(subject.get("Lowerme")).to eq 'example'
+      expect(subject.get("Upperme")).to eq 'EXAMPLE'
+      expect(subject.get("lowerMe")).to eq ['example', 'example']
+      expect(subject.get("upperMe")).to eq ['EXAMPLE', 'EXAMPLE']
+      expect(subject.get("intme") ).to eq [1234, 7890, 7]
+      expect(subject.get("floatme")).to eq [1234.455]
       expect(subject).not_to include("rename1")
-      expect(subject["rename2"]).to eq [ "hello world" ]
+      expect(subject.get("rename2")).to eq [ "hello world" ]
       expect(subject).not_to include("removeme")
 
       expect(subject).to include("newfield")
-      expect(subject["newfield"]).to eq "newnew"
+      expect(subject.get("newfield")).to eq "newnew"
       expect(subject).not_to include("nosuchfield")
-      expect(subject["updateme"]).to eq "updated"
+      expect(subject.get("updateme")).to eq "updated"
     end
   end
 
@@ -217,8 +217,8 @@ describe LogStash::Filters::Mutate do
 
     sample event do
       # ATM, only the ASCII characters will case change
-      expect(subject["lowerme"]).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
-      expect(subject["upperme"]).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
+      expect(subject.get("lowerme")).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
+      expect(subject.get("upperme")).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
     end
   end
 
@@ -237,12 +237,12 @@ describe LogStash::Filters::Mutate do
       "survivor"   => "Hello.",
       "one" => { "two" => "wee" }
     ) do
-      expect(subject["survivor"]).to eq "Hello."
+      expect(subject.get("survivor")).to eq "Hello."
 
       expect(subject).not_to include("remove-me")
       expect(subject).not_to include("remove-me2")
       expect(subject).not_to include("diedie")
-      expect(subject["one"]).not_to include("two")
+      expect(subject.get("one")).not_to include("two")
     end
   end
 
@@ -257,10 +257,10 @@ describe LogStash::Filters::Mutate do
     sample(
        "abc"  => "def"
     ) do
-      insist { subject["abc"] } == "def"
+      insist { subject.get("abc") } == "def"
     end
   end
-  
+
 
   describe "remove with dynamic fields (%{})" do
     config '
@@ -287,7 +287,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => 1234) do
-      expect(subject["unicorns"]).to eq "1234"
+      expect(subject.get("unicorns")).to eq "1234"
     end
   end
 
@@ -323,17 +323,17 @@ describe LogStash::Filters::Mutate do
       "wrong_field" => "none of the above"
     }
     sample event do
-      expect(subject["true_field"] ).to eq(true)
-      expect(subject["false_field"]).to eq(false)
-      expect(subject["true_upper"] ).to eq(true)
-      expect(subject["false_upper"]).to eq(false)
-      expect(subject["true_one"]   ).to eq(true)
-      expect(subject["false_zero"] ).to eq(false)
-      expect(subject["true_yes"]   ).to eq(true)
-      expect(subject["false_no"]   ).to eq(false)
-      expect(subject["true_y"]     ).to eq(true)
-      expect(subject["false_n"]    ).to eq(false)
-      expect(subject["wrong_field"]).to eq("none of the above")
+      expect(subject.get("true_field") ).to eq(true)
+      expect(subject.get("false_field")).to eq(false)
+      expect(subject.get("true_upper") ).to eq(true)
+      expect(subject.get("false_upper")).to eq(false)
+      expect(subject.get("true_one")   ).to eq(true)
+      expect(subject.get("false_zero") ).to eq(false)
+      expect(subject.get("true_yes")   ).to eq(true)
+      expect(subject.get("false_no")   ).to eq(false)
+      expect(subject.get("true_y")     ).to eq(true)
+      expect(subject.get("false_n")    ).to eq(false)
+      expect(subject.get("wrong_field")).to eq("none of the above")
     end
   end
 
@@ -346,7 +346,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => "Magnificient, but extinct, animals") do
-      expect(subject["unicorns"]).to eq "Magnificient, and common, animals"
+      expect(subject.get("unicorns")).to eq "Magnificient, and common, animals"
     end
   end
 
@@ -361,7 +361,7 @@ describe LogStash::Filters::Mutate do
     sample("unicorns" => [
       "Magnificient extinct animals", "Other extinct ideas" ]
     ) do
-      expect(subject["unicorns"]).to eq [
+      expect(subject.get("unicorns")).to eq [
         "Magnificient common animals",
         "Other common ideas"
       ]
@@ -378,8 +378,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("colors" => "One red car", "shapes" => "Four red squares") do
-      expect(subject["colors"]).to eq "One blue car"
-      expect(subject["shapes"]).to eq "Four red circles"
+      expect(subject.get("colors")).to eq "One blue car"
+      expect(subject.get("shapes")).to eq "Four red circles"
     end
   end
 
@@ -392,7 +392,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("colors" => "red3") do
-      expect(subject["colors"]).to eq "redblue"
+      expect(subject.get("colors")).to eq "redblue"
     end
   end
 
@@ -409,7 +409,7 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample "HELLO WORLD" do
-      expect(subject["foo"]).to eq "hello"
+      expect(subject.get("foo")).to eq "hello"
     end
   end
 
@@ -468,8 +468,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample({ "foo" => { "bar" => "1000" } }) do
-      expect(subject["[foo][bar]"]).to eq 1000
-      expect(subject["[foo][bar]"]).to be_a(Fixnum)
+      expect(subject.get("[foo][bar]")).to eq 1000
+      expect(subject.get("[foo][bar]")).to be_a(Fixnum)
     end
   end
 
@@ -483,8 +483,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample({ "foo" => ["100", "200"] }) do
-      expect(subject["[foo][0]"]).to eq 100
-      expect(subject["[foo][0]"]).to be_a(Fixnum)
+      expect(subject.get("[foo][0]")).to eq 100
+      expect(subject.get("[foo][0]")).to be_a(Fixnum)
     end
   end
 
@@ -498,7 +498,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns" => "Unicorns of type blue are common", "unicorn_type" => "blue") do
-      expect(subject["unicorns"]).to eq "Unicorns green are common"
+      expect(subject.get("unicorns")).to eq "Unicorns green are common"
     end
   end
 
@@ -512,7 +512,7 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("unicorns2" => "Unicorns of type blue are common", "unicorn_color" => "blue") do
-      expect(subject["unicorns2"]).to eq "Unicorns blue and green are common"
+      expect(subject.get("unicorns2")).to eq "Unicorns blue and green are common"
     end
   end
 
@@ -529,7 +529,7 @@ describe LogStash::Filters::Mutate do
         "Unicorns of type blue are found in Alaska", "Unicorns of type blue are extinct" ],
            "color" => "blue"
     ) do
-      expect(subject["unicorns_array"]).to eq [
+      expect(subject.get("unicorns_array")).to eq [
           "Unicorns blue and green are found in Alaska",
           "Unicorns blue and green are extinct"
       ]
@@ -545,8 +545,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar") do
-      expect(subject["list"]).to eq ["bar"]
-      expect(subject["foo"]).to eq "bar"
+      expect(subject.get("list")).to eq ["bar"]
+      expect(subject.get("foo")).to eq "bar"
     end
   end
 
@@ -559,8 +559,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => []) do
-      expect(subject["list"]).to eq ["bar"]
-      expect(subject["foo"]).to eq "bar"
+      expect(subject.get("list")).to eq ["bar"]
+      expect(subject.get("foo")).to eq "bar"
     end
   end
 
@@ -573,8 +573,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => ["baz"]) do
-      expect(subject["list"]).to eq ["baz", "bar"]
-      expect(subject["foo"]).to eq "bar"
+      expect(subject.get("list")).to eq ["baz", "bar"]
+      expect(subject.get("foo")).to eq "bar"
     end
   end
 
@@ -587,8 +587,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => ["bar"], "list" => ["baz"]) do
-      expect(subject["list"]).to eq ["baz", "bar"]
-      expect(subject["foo"]).to eq ["bar"]
+      expect(subject.get("list")).to eq ["baz", "bar"]
+      expect(subject.get("foo")).to eq ["bar"]
     end
   end
 
@@ -601,8 +601,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => [], "list" => ["baz"]) do
-      expect(subject["list"]).to eq ["baz"]
-      expect(subject["foo"]).to eq []
+      expect(subject.get("list")).to eq ["baz"]
+      expect(subject.get("foo")).to eq []
     end
   end
 
@@ -615,8 +615,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => ["bar"], "list" => "baz") do
-      expect(subject["list"]).to eq ["baz", "bar"]
-      expect(subject["foo"]).to eq ["bar"]
+      expect(subject.get("list")).to eq ["baz", "bar"]
+      expect(subject.get("foo")).to eq ["bar"]
     end
   end
 
@@ -629,8 +629,8 @@ describe LogStash::Filters::Mutate do
       }'
 
     sample("foo" => "bar", "list" => "baz") do
-      expect(subject["list"]).to eq ["baz", "bar"]
-      expect(subject["foo"]).to eq "bar"
+      expect(subject.get("list")).to eq ["baz", "bar"]
+      expect(subject.get("foo")).to eq "bar"
     end
   end
 

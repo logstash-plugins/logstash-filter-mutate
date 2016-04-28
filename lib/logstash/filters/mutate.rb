@@ -244,27 +244,27 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       old = event.sprintf(old)
       new = event.sprintf(new)
       next unless event.include?(old)
-      event[new] = event.remove(old)
+      event.set(new, event.remove(old))
     end
   end
 
   def update(event)
     @update.each do |field, newvalue|
       next unless event.include?(field)
-      event[field] = event.sprintf(newvalue)
+      event.set(field, event.sprintf(newvalue))
     end
   end
 
   def replace(event)
     @replace.each do |field, newvalue|
-      event[field] = event.sprintf(newvalue)
+      event.set(field, event.sprintf(newvalue))
     end
   end
 
   def convert(event)
     @convert.each do |field, type|
       next unless event.include?(field)
-      original = event[field]
+      original = event.get(field)
       # calls convert_{string,integer,float,boolean} depending on type requested.
       converter = method(CONVERT_PREFIX + type)
 
@@ -272,11 +272,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       when Hash
         @logger.debug? && @logger.debug("I don't know how to type convert a hash, skipping", :field => field, :value => original)
       when Array
-        event[field] = original.map { |v| converter.call(v) }
+        event.set(field, original.map { |v| converter.call(v) })
       when NilClass
         # ignore
       else
-        event[field] = converter.call(original)
+        event.set(field, converter.call(original))
       end
     end
   end
@@ -313,10 +313,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       needle = config[:needle]
       replacement = config[:replacement]
 
-      value = event[field]
+      value = event.get(field)
       case value
       when Array
-        event[field] = value.map do |v|
+        result = value.map do |v|
           if v.is_a?(String)
             gsub_dynamic_fields(event, v, needle, replacement)
           else
@@ -324,10 +324,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
             v
           end
         end
+        event.set(field, result)
       when String
-        event[field] = gsub_dynamic_fields(event, value, needle, replacement)
+        event.set(field, gsub_dynamic_fields(event, value, needle, replacement))
       else
-        @logger.debug? && @logger.debug("gsub mutation is only applicable for Strings, skipping", :field => field, :value => event[field])
+        @logger.debug? && @logger.debug("gsub mutation is only applicable for Strings, skipping", :field => field, :value => event.get(field))
       end
     end
   end
@@ -343,32 +344,33 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   def uppercase(event)
     @uppercase.each do |field|
-      original = event[field]
+      original = event.get(field)
       # in certain cases JRuby returns a proxy wrapper of the event[field] value
       # therefore we can't assume that we are modifying the actual value behind
       # the key so read, modify and overwrite
-      event[field] = case original
-      when Array
-        # can't map upcase! as it replaces an already upcase value with nil
-        # ["ABCDEF"].map(&:upcase!) => [nil]
-        original.map do |elem|
-          (elem.is_a?(String) ? elem.upcase : elem)
+      result = case original
+        when Array
+          # can't map upcase! as it replaces an already upcase value with nil
+          # ["ABCDEF"].map(&:upcase!) => [nil]
+          original.map do |elem|
+            (elem.is_a?(String) ? elem.upcase : elem)
+          end
+        when String
+          # nil means no change was made to the String
+          original.upcase! || original
+        else
+          @logger.debug? && @logger.debug("Can't uppercase something that isn't a string", :field => field, :value => original)
+          original
         end
-      when String
-        # nil means no change was made to the String
-        original.upcase! || original
-      else
-        @logger.debug? && @logger.debug("Can't uppercase something that isn't a string", :field => field, :value => original)
-        original
-      end
+      event.set(field, result)
     end
   end
 
   def lowercase(event)
     #see comments for #uppercase
     @lowercase.each do |field|
-      original = event[field]
-      event[field] = case original
+      original = event.get(field)
+      result = case original
       when Array
         original.map! do |elem|
           (elem.is_a?(String) ? elem.downcase : elem)
@@ -379,37 +381,38 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         @logger.debug? && @logger.debug("Can't lowercase something that isn't a string", :field => field, :value => original)
         original
       end
+      event.set(field, result)
     end
   end
 
   def split(event)
     @split.each do |field, separator|
-      value = event[field]
+      value = eventget(field)
       if value.is_a?(String)
-        event[field] = value.split(separator)
+        event.set(field, value.split(separator))
       else
-        @logger.debug? && @logger.debug("Can't split something that isn't a string", :field => field, :value => event[field])
+        @logger.debug? && @logger.debug("Can't split something that isn't a string", :field => field, :value => event.get(field))
       end
     end
   end
 
   def join(event)
     @join.each do |field, separator|
-      value = event[field]
+      value = event.get(field)
       if value.is_a?(Array)
-        event[field] = value.join(separator)
+        event.set(field, value.join(separator))
       end
     end
   end
 
   def strip(event)
     @strip.each do |field|
-      value = event[field]
+      value = event.get(field)
       case value
       when Array
-        event[field] = value.map{|s| s.strip }
+        event.set(field, value.map{|s| s.strip })
       when String
-        event[field] = value.strip
+        event.set(field, value.strip)
       end
     end
   end
@@ -418,10 +421,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     @merge.each do |dest_field, added_fields|
       # When multiple calls, added_field is an array
 
-      dest_field_value = event[dest_field]
+      dest_field_value = event.get(dest_field)
 
       Array(added_fields).each do |added_field|
-        added_field_value = event[added_field]
+        added_field_value = event.get(added_field)
 
         if dest_field_value.is_a?(Hash) ^ added_field_value.is_a?(Hash)
           @logger.error("Not possible to merge an array and a hash: ", :dest_field => dest_field, :added_field => added_field )
@@ -433,15 +436,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           # do not use event[dest_field].update because the returned object from event[dest_field]
           # can/will be a copy of the actual event data and directly updating it will not update
           # the Event internal data. The updated value must be reassigned in the Event.
-          event[dest_field] = dest_field_value.update(added_field_value)
+          event.set(dest_field, dest_field_value.update(added_field_value))
         else
           # do not use event[dest_field].concat because the returned object from event[dest_field]
           # can/will be a copy of the actual event data and directly updating it will not update
           # the Event internal data. The updated value must be reassigned in the Event.
-          event[dest_field] = Array(dest_field_value).concat(Array(added_field_value))
+          event.set(dest_field, Array(dest_field_value).concat(Array(added_field_value)))
         end
       end
     end
   end
-
 end
