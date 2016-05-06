@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
 
   s.name            = 'logstash-filter-mutate'
-  s.version         = '2.0.6'
+  s.version         = '3.0.0'
   s.licenses        = ['Apache License (2.0)']
   s.summary         = "The mutate filter allows you to perform general mutations on fields. You can rename, remove, replace, and modify fields in your events."
   s.description     = "This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program"
