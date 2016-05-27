@@ -1,3 +1,6 @@
+## 3.1.0
+ - breaking,config: Remove deprecated config `remove`. Please use generic `remove_field` instead.
+
 ## 3.0.1
  - internal: Republish all the gems under jruby.
 

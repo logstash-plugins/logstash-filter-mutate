@@ -160,7 +160,6 @@ describe LogStash::Filters::Mutate do
           replace => [ "newfield", "newnew" ]
           update => [ "nosuchfield", "weee" ]
           update => [ "updateme", "updated" ]
-          remove => [ "removeme" ]
         }
       }
     CONFIG
@@ -176,8 +175,7 @@ describe LogStash::Filters::Mutate do
       "floatme" => [ "1234.455" ],
       "rename1" => [ "hello world" ],
       "updateme" => [ "who cares" ],
-      "replaceme" => [ "who cares" ],
-      "removeme" => [ "something" ]
+      "replaceme" => [ "who cares" ]
     }
 
     sample event do
@@ -191,7 +189,6 @@ describe LogStash::Filters::Mutate do
       expect(subject.get("floatme")).to eq [1234.455]
       expect(subject).not_to include("rename1")
       expect(subject.get("rename2")).to eq [ "hello world" ]
-      expect(subject).not_to include("removeme")
 
       expect(subject).to include("newfield")
       expect(subject.get("newfield")).to eq "newnew"
@@ -219,62 +216,6 @@ describe LogStash::Filters::Mutate do
       # ATM, only the ASCII characters will case change
       expect(subject.get("lowerme")).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
       expect(subject.get("upperme")).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
-    end
-  end
-
-  describe "remove multiple fields" do
-    config '
-      filter {
-        mutate {
-          remove => [ "remove-me", "remove-me2", "diedie", "[one][two]" ]
-        }
-      }'
-
-    sample(
-      "remove-me"  => "Goodbye!",
-      "remove-me2" => 1234,
-      "diedie"     => [1, 2, 3, 4],
-      "survivor"   => "Hello.",
-      "one" => { "two" => "wee" }
-    ) do
-      expect(subject.get("survivor")).to eq "Hello."
-
-      expect(subject).not_to include("remove-me")
-      expect(subject).not_to include("remove-me2")
-      expect(subject).not_to include("diedie")
-      expect(subject.get("one")).not_to include("two")
-    end
-  end
-
-  describe "remove on non-existent field" do
-    config '
-      filter {
-        mutate {
-          remove => "[foo][bar]"
-        }
-      }'
-
-    sample(
-       "abc"  => "def"
-    ) do
-      insist { subject.get("abc") } == "def"
-    end
-  end
-
-
-  describe "remove with dynamic fields (%{})" do
-    config '
-      filter {
-        mutate {
-          remove => [ "field_%{x}" ]
-        }
-      }'
-
-    sample(
-      "x" => "one",
-      "field_one" => "value"
-    ) do
-      reject { subject }.include?("field_one")
     end
   end
 
