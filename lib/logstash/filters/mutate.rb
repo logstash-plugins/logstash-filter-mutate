@@ -19,20 +19,6 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :rename, :validate => :hash
 
-  # Remove one or more fields.
-  #
-  # Example:
-  # [source,ruby]
-  #     filter {
-  #       mutate {
-  #         remove => [ "client" ]  # Removes the 'client' field
-  #       }
-  #     }
-  #
-  # This option is deprecated, instead use `remove_field` option available in all
-  # filters.
-  config :remove, :validate => :array, :deprecated => true
-
   # Replace a field with a new value. The new value can include `%{foo}` strings
   # to help you build a new value from other parts of the event.
   #
@@ -231,13 +217,6 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   private
-
-  def remove(event)
-    @remove.each do |field|
-      field = event.sprintf(field)
-      event.remove(field)
-    end
-  end
 
   def rename(event)
     @rename.each do |old, new|
