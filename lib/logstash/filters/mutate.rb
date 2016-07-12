@@ -366,7 +366,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   def split(event)
     @split.each do |field, separator|
-      value = eventget(field)
+      value = event.get(field)
       if value.is_a?(String)
         event.set(field, value.split(separator))
       else
