@@ -43,7 +43,6 @@ filter {
     grok {
         match => { "message" => "(?:hello) %{WORD:bar}" }
         break_on_match => false
-        singles => true
     }
     mutate {
       lowercase => [ "bar", "lower1", "lower2" ]
