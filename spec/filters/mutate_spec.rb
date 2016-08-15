@@ -115,6 +115,55 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "#split" do
+
+    let(:config) do
+      { "split" => {"field" => "," } }
+    end
+
+    context "when source field is a string" do
+
+      let(:attrs) { { "field" => "foo,bar,baz" } }
+
+      it "should split string into array" do
+        subject.filter(event)
+        expect(event.get("field")).to eq(["foo","bar","baz"])
+      end
+
+      it "should convert single field to array" do
+        event.set("field","foo")
+        subject.filter(event)
+        expect(event.get("field")).to eq(["foo"])
+
+        event.set("field","foo,")
+        subject.filter(event)
+        expect(event.get("field")).to eq(["foo"])
+      end
+
+    end
+
+    context "when source field is not a string" do
+
+      it "should not modify source field nil" do
+        event.set("field",nil)
+        subject.filter(event)
+        expect(event.get("field")).to eq(nil)
+      end
+
+      it "should not modify source field array" do
+        event.set("field",["foo","bar"])
+        subject.filter(event)
+        expect(event.get("field")).to eq(["foo","bar"])
+      end
+
+      it "should not modify source field hash" do
+        event.set("field",{"foo" => "bar,baz"})
+        subject.filter(event)
+        expect(event.get("field")).to eq({"foo" => "bar,baz"})
+      end
+    end
+  end
+
 end
 
 describe LogStash::Filters::Mutate do
