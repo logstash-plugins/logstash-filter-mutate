@@ -1,3 +1,6 @@
+## 3.1.3
+ - Don't create empty fields when lower/uppercasing a non-existant field
+
 ## 3.1.2
  - bugfix: split method was not working, #78
 
