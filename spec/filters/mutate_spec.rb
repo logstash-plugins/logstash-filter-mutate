@@ -178,6 +178,51 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "#copy" do
+
+    let(:config) do
+      { "copy" => {"field" => "target" } }
+    end
+
+    context "when source field is a string" do
+
+      let(:attrs) { { "field" => "foobar" } }
+
+      it "should deep copy the field" do
+        subject.filter(event)
+        expect(event.get("target")).to eq(event.get("field"))
+        #fields should be independant
+        event.set("field",nil);
+        expect(event.get("target")).not_to eq(event.get("field"))
+      end
+    end
+
+    context "when source field is an array" do
+
+      let(:attrs) { { "field" => ["foo","bar"] } }
+
+      it "should not modify source field nil" do
+        subject.filter(event)
+        expect(event.get("target")).to eq(event.get("field"))
+        #fields should be independant
+        event.set("field",event.get("field") << "baz")
+        expect(event.get("target")).not_to eq(event.get("field"))
+      end
+    end
+
+    context "when source field is a hash" do
+
+      let(:attrs) { { "field" => { "foo" => "bar"} } }
+
+      it "should not modify source field nil" do
+        subject.filter(event)
+        expect(event.get("target")).to eq(event.get("field"))
+        #fields should be independant
+        event.set("[field][foo]","baz")
+        expect(event.get("[target][foo]")).not_to eq(event.get("[field][foo]"))
+      end
+    end
+  end
 end
 
 describe LogStash::Filters::Mutate do
