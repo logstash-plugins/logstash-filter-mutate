@@ -162,6 +162,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :merge, :validate => :hash
 
+  # Copy an existing field to another field. Existing target field will be overriden.
+  # ==========================
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #          copy => { "source_field" => "dest_field" }
+  #       }
+  #     }
+  config :copy, :validate => :hash
+
   TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
   CONVERT_PREFIX = "convert_".freeze
@@ -212,6 +223,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     split(event) if @split
     join(event) if @join
     merge(event) if @merge
+    copy(event) if @copy
 
     filter_matched(event)
   end
@@ -425,6 +437,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           event.set(dest_field, Array(dest_field_value).concat(Array(added_field_value)))
         end
       end
+    end
+  end
+
+  def copy(event)
+    @copy.each do |src_field, dest_field|
+      original = event.get(src_field)
+      next if original.nil?
+      event.set(dest_field,LogStash::Util.deep_clone(original))
     end
   end
 end

@@ -1,3 +1,6 @@
+## 3.1.4
+ - feature: Allow to copy fields.
+
 ## 3.1.3
  - Don't create empty fields when lower/uppercasing a non-existant field
 
