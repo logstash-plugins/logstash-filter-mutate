@@ -197,21 +197,27 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         :replacement  => replacement
       }
     end
+
+    @active_filter_funcs = [
+      @rename ? Proc.new { |e| rename(e) } : nil,
+      @update ? Proc.new { |e| update(e) } : nil,
+      @replace ? Proc.new { |e| replace(e) } : nil,
+      @convert? Proc.new { |e| convert(e) } : nil,
+      @gsub? Proc.new { |e| gsub(e) } : nil,
+      @uppercase ? Proc.new { |e| uppercase(e) } : nil,
+      @lowercase ? Proc.new { |e| lowercase(e) } : nil,
+      @strip ? Proc.new { |e| strip(e) } : nil,
+      @remove ? Proc.new { |e| remove(e) } : nil,
+      @split ? Proc.new { |e| split(e) } : nil,
+      @join ? Proc.new { |e| join(e) } : nil,
+      @merge ? Proc.new { |e| merge(e) } : nil
+    ].reject{|i| i.nil?}
   end
 
   def filter(event)
-    rename(event) if @rename
-    update(event) if @update
-    replace(event) if @replace
-    convert(event) if @convert
-    gsub(event) if @gsub
-    uppercase(event) if @uppercase
-    lowercase(event) if @lowercase
-    strip(event) if @strip
-    remove(event) if @remove
-    split(event) if @split
-    join(event) if @join
-    merge(event) if @merge
+    for func in @active_filter_funcs do
+      func.call(event)
+    end
 
     filter_matched(event)
   end
