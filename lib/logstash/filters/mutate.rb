@@ -112,7 +112,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :lowercase, :validate => :array
 
-  # Split a field to an array using a separator character. Only works on string
+  # copy['field'] a field to an array using a separator character. Only works on string
   # fields.
   #
   # Example:
@@ -161,6 +161,21 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #       }
   #     }
   config :merge, :validate => :hash
+
+  # Copy all properties in a sub-structure of the event to the root level. By default, all the other root level
+  # properties are kept, but it is also possible to erase them by setting `empty_root` to `true`
+  #
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #          copy => {
+  #             "field" => "copied_sub_field"
+  #             "empty_root" => true
+  #          }
+  #       }
+  #     }
+  config :copy, :validate => :hash
 
   TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
@@ -212,6 +227,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     split(event) if @split
     join(event) if @join
     merge(event) if @merge
+    copy(event) if @copy
 
     filter_matched(event)
   end
@@ -426,5 +442,42 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         end
       end
     end
+  end
+
+  def copy(event)
+    if @copy['field'].nil?
+      raise LogStash::ConfigurationError, I18n.t(
+          "logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter",
+          :type => "mutate",
+          :error => "No field to copy has been specified"
+      )
+    end
+
+    field = event.sprintf(@copy['field'])
+    if event.get(field).nil?
+      @logger.warn("No field available in event", :field => field)
+      return
+    end
+
+    unless event.get(field).is_a?(Hash)
+      @logger.warn("Field to copy must be a Hash", :field => field, :type => event.get(field).class)
+      return
+    end
+
+    # delete all root fields first
+    if @copy['empty_root'] and convert_boolean(@copy['empty_root'])
+      event.to_hash.each do |k, v|
+        event.remove(k) unless k == field
+      end
+    end
+
+    # copy sub-fields to root level
+    event.get(field).each do |k, v|
+      event.set(k, v)
+    end
+
+    # delete copied sub-field
+    event.remove(field)
   end
 end

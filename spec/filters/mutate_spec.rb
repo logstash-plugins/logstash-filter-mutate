@@ -638,4 +638,85 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "no sub-field to copy" do
+    config '
+      filter {
+        mutate {
+          copy => {
+          }
+        }
+      }'
+
+    sample("foo" => "bar") do
+      expect {subject}.to raise_error LogStash::ConfigurationError
+    end
+  end
+
+  describe "copy empty sub-field at root level" do
+    config '
+      filter {
+        mutate {
+          copy => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar") do
+      expect(subject.get("foo")).to eq "bar"
+    end
+  end
+
+  describe "copy non-Hash sub-field at root level" do
+    config '
+      filter {
+        mutate {
+          copy => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => "123") do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("sub")).to eq "123"
+    end
+  end
+
+  describe "copy sub-fields at root level" do
+    config '
+      filter {
+        mutate {
+          copy => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("field1")).to eq "value1"
+      expect(subject.get("field2")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "copy sub-fields at root level and erase root fields" do
+    config '
+      filter {
+        mutate {
+          copy => {
+            field => "sub"
+            empty_root => true
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}) do
+      expect(subject.get("foo")).to eq nil
+      expect(subject.get("field1")).to eq "value1"
+      expect(subject.get("field2")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
 end
