@@ -112,7 +112,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :lowercase, :validate => :array
 
-  # copy['field'] a field to an array using a separator character. Only works on string
+  # Split a field to an array using a separator character. Only works on string
   # fields.
   #
   # Example:
