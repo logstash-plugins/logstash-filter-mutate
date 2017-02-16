@@ -187,7 +187,7 @@ describe LogStash::Filters::Mutate do
       config <<-CONFIG
         filter {
           mutate {
-            convert => [ "message", "int"] //should be integer
+            convert => [ "message", "int"] #should be integer
           }
         }
       CONFIG
@@ -638,4 +638,164 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "no sub-field to move" do
+    config '
+      filter {
+        mutate {
+          move => {
+          }
+        }
+      }'
+
+    sample("foo" => "bar") do
+      expect {subject}.to raise_error LogStash::ConfigurationError
+    end
+  end
+
+  describe "move empty sub-field at root level" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar") do
+      expect(subject.get("foo")).to eq "bar"
+    end
+  end
+
+  describe "move non-Hash sub-field at root level" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => "123") do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("sub")).to eq "123"
+    end
+  end
+
+  describe "move sub-fields at root level" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("field1")).to eq "value1"
+      expect(subject.get("field2")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "move sub-fields at root level and erase root fields" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+            empty_target => true
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}) do
+      expect(subject.get("foo")).to eq nil
+      expect(subject.get("field1")).to eq "value1"
+      expect(subject.get("field2")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "move sub-fields to non-existing target" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+            target => "target"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("[target][field1]")).to eq "value1"
+      expect(subject.get("[target][field2]")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "move sub-fields to existing hash target" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+            target => "target"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}, "target" => { "field3" => "value3" }) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("[target][field1]")).to eq "value1"
+      expect(subject.get("[target][field2]")).to eq "value2"
+      expect(subject.get("[target][field3]")).to eq "value3"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "move sub-fields to existing hash target and erase target fields" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+            target => "target"
+            empty_target => true
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}, "target" => { "field3" => "value3" }) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("[target][field1]")).to eq "value1"
+      expect(subject.get("[target][field2]")).to eq "value2"
+      expect(subject.get("[target][field3]")).to eq nil
+      expect(subject.get("sub")).to eq nil
+    end
+  end
+
+  describe "move sub-fields to existing non-hash target" do
+    config '
+      filter {
+        mutate {
+          move => {
+            field => "sub"
+            target => "target"
+          }
+        }
+      }'
+
+    sample("foo" => "bar", "sub" => { "field1" => "value1", "field2" => "value2"}, "target" => "123" ) do
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("[target][field1]")).to eq "value1"
+      expect(subject.get("[target][field2]")).to eq "value2"
+      expect(subject.get("sub")).to eq nil
+    end
+  end
 end
