@@ -162,20 +162,21 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :merge, :validate => :hash
 
-  # Copy all properties in a sub-structure of the event to the root level. By default, all the other root level
-  # properties are kept, but it is also possible to erase them by setting `empty_root` to `true`
+  # Move all properties of a sub-structure of the event to the `target` field (which is the root level if not specified).
+  # By default, all the other properties of the target are kept, but it is also possible to erase them by setting `empty_target` to `true`
   #
   # Example:
   # [source,ruby]
   #     filter {
   #       mutate {
-  #          copy => {
-  #             "field" => "copied_sub_field"
-  #             "empty_root" => true
+  #          move => {
+  #             "field" => "moved_field"
+  #             "target" => "target_field"
+  #             "empty_target" => true
   #          }
   #       }
   #     }
-  config :copy, :validate => :hash
+  config :move, :validate => :hash
 
   TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
@@ -227,7 +228,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     split(event) if @split
     join(event) if @join
     merge(event) if @merge
-    copy(event) if @copy
+    move(event) if @move
 
     filter_matched(event)
   end
@@ -444,40 +445,55 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     end
   end
 
-  def copy(event)
-    if @copy['field'].nil?
+  def move(event)
+    if @move['field'].nil?
       raise LogStash::ConfigurationError, I18n.t(
           "logstash.agent.configuration.invalid_plugin_register",
           :plugin => "filter",
           :type => "mutate",
-          :error => "No field to copy has been specified"
+          :error => "No field to move has been specified"
       )
     end
 
-    field = event.sprintf(@copy['field'])
+    field = event.sprintf(@move['field'])
     if event.get(field).nil?
       @logger.warn("No field available in event", :field => field)
       return
     end
 
     unless event.get(field).is_a?(Hash)
-      @logger.warn("Field to copy must be a Hash", :field => field, :type => event.get(field).class)
+      @logger.warn("Field to move must be a Hash", :field => field, :type => event.get(field).class)
       return
     end
 
-    # delete all root fields first
-    if @copy['empty_root'] and convert_boolean(@copy['empty_root'])
-      event.to_hash.each do |k, v|
-        event.remove(k) unless k == field
+    # delete all target fields first?
+    if @move['empty_target'] and convert_boolean(@move['empty_target'])
+      # empty the root?
+      if @move['target'].nil?
+        event.to_hash.each do |k, v|
+          event.remove(k) unless k == field
+        end
+      else
+        # empty the target?
+        event.set(@move['target'], {})
+      end
+    else
+      # make sure that the target is a Hash and not a string, etc
+      unless @move['target'].nil?
+        unless event.get(@move['target']).is_a?(Hash)
+          event.set(@move['target'], {})
+        end
       end
     end
 
-    # copy sub-fields to root level
+    # move sub-fields to target level
     event.get(field).each do |k, v|
-      event.set(k, v)
+      target_key = k if @move['target'].nil?
+      target_key = "#{@move['target']}[#{k}]" unless @move['target'].nil?
+      event.set(target_key, v)
     end
 
-    # delete copied sub-field
+    # delete moved sub-field
     event.remove(field)
   end
 end
