@@ -537,6 +537,21 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert should work within arrays" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => [ "[foo][0]", "integer" ]
+        }
+      }
+    CONFIG
+
+    sample({ "foo" => ["100", "200"] }) do
+      insist { subject["[foo][0]"] } == 100
+      insist { subject["[foo][0]"] }.is_a?(Fixnum)
+    end
+  end
+
   #LOGSTASH-1529
   describe "gsub on a String with dynamic fields (%{}) in pattern" do
     config '
