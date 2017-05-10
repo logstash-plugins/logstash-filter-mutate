@@ -174,6 +174,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :copy, :validate => :hash
 
+  # Remove duplicate values from array.
+  # ==========================
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #          array_remove_duplicate => [ "fieldname" ]
+  #       }
+  #     }
+  config :array_remove_duplicate, :validate => :array
+
   TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
   CONVERT_PREFIX = "convert_".freeze
@@ -225,6 +236,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     join(event) if @join
     merge(event) if @merge
     copy(event) if @copy
+    array_remove_duplicate(event) if @array_remove_duplicate
 
     filter_matched(event)
   end
@@ -446,6 +458,13 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       original = event.get(src_field)
       next if original.nil?
       event.set(dest_field,LogStash::Util.deep_clone(original))
+    end
+  end
+
+  def array_remove_duplicate(event)
+    @array_remove_duplicate.each do |field|
+      original = event.get(field)
+      event.set(field, original.uniq)
     end
   end
 end

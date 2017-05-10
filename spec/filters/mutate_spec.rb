@@ -223,6 +223,23 @@ describe LogStash::Filters::Mutate do
       end
     end
   end
+
+  describe "#array_remove_duplicate" do
+    let(:config) do
+      { "array_remove_duplicate" => ["array_field"] }
+    end
+
+    let(:attrs) { { "array_field" => ["x", "x", "y", "z", "z"]  } }
+
+    it "should not raise an error" do
+      expect { subject.filter(event) }.not_to raise_error
+    end
+
+    it "should remove duplicate values" do
+      subject.filter(event)
+      expect(event.get("array_field")).to eq(["x", "y", "z"])
+    end
+  end
 end
 
 describe LogStash::Filters::Mutate do
