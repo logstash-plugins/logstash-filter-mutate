@@ -463,6 +463,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   def array_remove_duplicate(event)
     @array_remove_duplicate.each do |field|
+      next unless event.get(field).class == Array
       original = event.get(field)
       event.set(field, original.uniq)
     end
