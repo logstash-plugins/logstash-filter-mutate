@@ -232,7 +232,7 @@ describe LogStash::Filters::Mutate do
       config <<-CONFIG
         filter {
           mutate {
-            convert => [ "message", "int"] //should be integer
+            convert => [ "message", "int"] #should be integer
           }
         }
       CONFIG
