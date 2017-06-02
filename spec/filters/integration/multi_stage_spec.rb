@@ -10,7 +10,10 @@ unless LogStash::Environment.const_defined?(:LOGSTASH_HOME)
 end
 
 describe LogStash::Filters::Mutate do
-  let(:pipeline) { LogStash::Pipeline.new(config) }
+  let(:pipeline) do
+    new_pipeline_from_string(config)
+  end
+
   let(:events) do
     arr = event.is_a?(Array) ? event : [event]
     arr.map do |evt|
