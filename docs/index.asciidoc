@@ -85,7 +85,7 @@ Example:
   * There is no default value for this setting.
 
 Copy an existing field to another field. Existing target field will be overriden.
-==========================
+
 Example:
 [source,ruby]
     filter {
