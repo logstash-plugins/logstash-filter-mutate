@@ -66,8 +66,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :convert, :validate => :hash
 
-  # Convert a string field by applying a regular expression and a replacement.
-  # If the field is not a string, no action will be taken.
+  # Match a regular expression against a field value and replace all matches
+  # with another string. Only fields that are strings or arrays of strings are
+  # supported. For other kinds of fields no action will be taken.
   #
   # This configuration takes an array consisting of 3 elements per
   # field/substitution.
@@ -311,7 +312,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           if v.is_a?(String)
             gsub_dynamic_fields(event, v, needle, replacement)
           else
-            @logger.warn("gsub mutation is only applicable for Strings, skipping", :field => field, :value => v)
+            @logger.warn("gsub mutation is only applicable for strings and arrays of strings, skipping", :field => field, :value => v)
             v
           end
         end
@@ -319,7 +320,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       when String
         event.set(field, gsub_dynamic_fields(event, value, needle, replacement))
       else
-        @logger.debug? && @logger.debug("gsub mutation is only applicable for Strings, skipping", :field => field, :value => event.get(field))
+        @logger.debug? && @logger.debug("gsub mutation is only applicable for strings and arrays of strings, skipping", :field => field, :value => event.get(field))
       end
     end
   end
