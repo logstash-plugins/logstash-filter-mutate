@@ -1,3 +1,6 @@
+## 3.1.6
+  - Fix some documentation issues
+
 ## 3.1.4
  - feature: Allow to copy fields.
 
