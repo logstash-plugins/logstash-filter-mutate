@@ -31,6 +31,7 @@ This plugin supports the following configuration options plus the <<plugins-{typ
 [cols="<,<,<",options="header",]
 |=======================================================================
 |Setting |Input type|Required
+| <<plugins-{type}s-{plugin}-array_remove_duplicate>> |<<array,array>>|No
 | <<plugins-{type}s-{plugin}-convert>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-copy>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-gsub>> |<<array,array>>|No
@@ -50,8 +51,24 @@ filter plugins.
 
 &nbsp;
 
+[id="plugins-{type}s-{plugin}-array_remove_duplicate"]
+===== `array_remove_duplicate`
+
+  * Value type is <<array,array>>
+  * There is no default value for this setting.
+
+Removes duplicates from a field, so that only unique values remain.
+
+Example:
+[source,ruby]
+    filter {
+      mutate {
+        array_remove_duplicate => [ "fieldname" ]
+      }
+    }
+
 [id="plugins-{type}s-{plugin}-convert"]
-===== `convert` 
+===== `convert`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -79,7 +96,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-copy"]
-===== `copy` 
+===== `copy`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -95,7 +112,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-gsub"]
-===== `gsub` 
+===== `gsub`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -125,7 +142,7 @@ Example:
 
 
 [id="plugins-{type}s-{plugin}-join"]
-===== `join` 
+===== `join`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -141,7 +158,7 @@ Example:
    }
 
 [id="plugins-{type}s-{plugin}-lowercase"]
-===== `lowercase` 
+===== `lowercase`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -157,7 +174,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-merge"]
-===== `merge` 
+===== `merge`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -178,7 +195,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-rename"]
-===== `rename` 
+===== `rename`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -195,7 +212,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-replace"]
-===== `replace` 
+===== `replace`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -212,7 +229,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-split"]
-===== `split` 
+===== `split`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -229,7 +246,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-strip"]
-===== `strip` 
+===== `strip`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -245,7 +262,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-update"]
-===== `update` 
+===== `update`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -262,7 +279,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-uppercase"]
-===== `uppercase` 
+===== `uppercase`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
