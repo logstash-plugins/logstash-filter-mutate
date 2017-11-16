@@ -394,6 +394,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def capitalize(event)
     #see comments for #uppercase
     @capitalize.each do |field|
+      original = event.get(field)
       next if original.nil?
       result = case original
       when Array
