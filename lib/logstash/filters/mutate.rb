@@ -113,6 +113,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :lowercase, :validate => :array
 
+  # Convert a string to its capitalized equivalent.
+  #
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #         capitalize => [ "fieldname" ]
+  #       }
+  #     }
+  config :capitalize, :validate => :array
+
   # Split a field to an array using a separator character. Only works on string
   # fields.
   #
@@ -218,6 +229,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     convert(event) if @convert
     gsub(event) if @gsub
     uppercase(event) if @uppercase
+    capitalize(event) if @capitalize
     lowercase(event) if @lowercase
     strip(event) if @strip
     remove(event) if @remove
@@ -373,6 +385,25 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         original.downcase! || original
       else
         @logger.debug? && @logger.debug("Can't lowercase something that isn't a string", :field => field, :value => original)
+        original
+      end
+      event.set(field, result)
+    end
+  end
+
+  def capitalize(event)
+    #see comments for #uppercase
+    @capitalize.each do |field|
+      next if original.nil?
+      result = case original
+      when Array
+        original.map! do |elem|
+          (elem.is_a?(String) ? elem.capitalize : elem)
+        end
+      when String
+        original.capitalize! || original
+      else
+        @logger.debug? && @logger.debug("Can't capitalize something that isn't a string", :field => field, :value => original)
         original
       end
       event.set(field, result)

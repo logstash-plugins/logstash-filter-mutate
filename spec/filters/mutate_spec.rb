@@ -1,14 +1,14 @@
 # encoding: utf-8
 
-require "logstash/devutils/rspec/spec_helper"
-require "logstash/filters/mutate"
+#require "logstash/devutils/rspec/spec_helper"
+#require "logstash/filters/mutate"
 
 # running mutate which depends on grok  outside a logstash package means
 # LOGSTASH_HOME will not be defined, so let's set it here
 # before requiring the grok filter
-unless LogStash::Environment.const_defined?(:LOGSTASH_HOME)
-  LogStash::Environment::LOGSTASH_HOME = File.expand_path("../../../", __FILE__)
-end
+#unless LogStash::Environment.const_defined?(:LOGSTASH_HOME)
+ # LogStash::Environment::LOGSTASH_HOME = File.expand_path("../../../", __FILE__)
+#end
 
 # temporary fix to have the spec pass for an urgen mass-publish requirement.
 # cut & pasted from the same tmp fix in the grok spec
@@ -54,6 +54,24 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  context "when doing capitalize of an array" do
+
+    let(:config) do
+      { "capitalize" => ["array_of"] }
+    end
+
+    let(:attrs) { { "array_of" => ["ab", 2, "CDE"] } }
+
+    it "should capitalize not raise an error" do
+      expect { subject.filter(event) }.not_to raise_error
+    end
+
+    it "should convert only string elements" do
+      subject.filter(event)
+      expect(event.get("array_of")).to eq(["Ab", 2, "Cde"])
+    end
+  end
+
   context "when doing lowercase of an array" do
 
     let(:config) do
@@ -72,7 +90,7 @@ describe LogStash::Filters::Mutate do
     end
   end
 
-  %w(lowercase uppercase).each do |operation|
+  %w(lowercase uppercase capitalize).each do |operation|
     context "executing #{operation} a non-existant field" do
       let(:attrs) { }
 
@@ -262,6 +280,7 @@ describe LogStash::Filters::Mutate do
         mutate {
           lowercase => ["lowerme","Lowerme", "lowerMe"]
           uppercase => ["upperme", "Upperme", "upperMe"]
+          capitalize => ["capitalizeme", "Capitalizeme", "capitalizeMe"]
           convert => [ "intme", "integer", "floatme", "float" ]
           rename => [ "rename1", "rename2" ]
           replace => [ "replaceme", "hello world" ]
@@ -275,10 +294,13 @@ describe LogStash::Filters::Mutate do
     event = {
       "lowerme" => "example",
       "upperme" => "EXAMPLE",
+      "capitalizeme" => "Example",
       "Lowerme" => "ExAmPlE",
       "Upperme" => "ExAmPlE",
+      "Capitalizeme" => "ExAmPlE",
       "lowerMe" => [ "ExAmPlE", "example" ],
       "upperMe" => [ "ExAmPlE", "EXAMPLE" ],
+      "capitalizeMe" => [ "ExAmPlE", "Example" ],
       "intme" => [ "1234", "7890.4", "7.9" ],
       "floatme" => [ "1234.455" ],
       "rename1" => [ "hello world" ],
@@ -289,10 +311,13 @@ describe LogStash::Filters::Mutate do
     sample event do
       expect(subject.get("lowerme")).to eq 'example'
       expect(subject.get("upperme")).to eq 'EXAMPLE'
+      expect(subject.get("capitalizeme")).to eq 'Example'
       expect(subject.get("Lowerme")).to eq 'example'
       expect(subject.get("Upperme")).to eq 'EXAMPLE'
+      expect(subject.get("Capitalizeme")).to eq 'Example'
       expect(subject.get("lowerMe")).to eq ['example', 'example']
       expect(subject.get("upperMe")).to eq ['EXAMPLE', 'EXAMPLE']
+      expect(subject.get("capitalizeMe")).to eq ['Example', 'Example']
       expect(subject.get("intme") ).to eq [1234, 7890, 7]
       expect(subject.get("floatme")).to eq [1234.455]
       expect(subject).not_to include("rename1")
@@ -311,6 +336,7 @@ describe LogStash::Filters::Mutate do
         mutate {
           lowercase => ["lowerme"]
           uppercase => ["upperme"]
+          capitalize => ["capitalizeme"]
         }
       }
     CONFIG
@@ -318,12 +344,14 @@ describe LogStash::Filters::Mutate do
     event = {
       "lowerme" => [ "АБВГД\0MMM", "こにちわ", "XyZółć", "NÎcË GÛŸ"],
       "upperme" => [ "аБвгд\0mmm", "こにちわ", "xYzółć", "Nîcë gûÿ"],
+      "capitalizeme" => ["АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"],
     }
 
     sample event do
       # ATM, only the ASCII characters will case change
       expect(subject.get("lowerme")).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
       expect(subject.get("upperme")).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
+      expect(subject.get("capitalizeme")).to eq [ "AБвгд\0Mmm", "こにちわ", "Xyzółć", "Nîcë gûÿ"]
     end
   end
 
@@ -520,7 +548,7 @@ describe LogStash::Filters::Mutate do
       expect(subject.get("[foo][bar]")).to eq 1000
       expect(subject.get("[foo][bar]")).to be_a(Fixnum)
     end
-  end
+ end
 
   describe "convert should work within arrays" do
     config <<-CONFIG
