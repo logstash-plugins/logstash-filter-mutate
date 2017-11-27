@@ -1,3 +1,6 @@
+## 3.2.0
+  - Support boolean to integer conversion #107
+  
 ## 3.1.7
   - Update gemspec summary
 

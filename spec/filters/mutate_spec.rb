@@ -537,6 +537,35 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert booleans to integer" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "[foo][0]" => "integer"
+            "[foo][1]" => "integer"
+            "[foo][2]" => "integer"
+            "[foo][3]" => "integer"
+            "[foo][4]" => "integer"
+          }
+        }
+      }
+    CONFIG
+
+    sample({ "foo" => [false, true, "0", "1", "2"] }) do
+      expect(subject.get("[foo][0]")).to eq 0
+      expect(subject.get("[foo][0]")).to be_a(Fixnum)
+      expect(subject.get("[foo][1]")).to eq 1
+      expect(subject.get("[foo][1]")).to be_a(Fixnum)
+      expect(subject.get("[foo][2]")).to eq 0
+      expect(subject.get("[foo][2]")).to be_a(Fixnum)
+      expect(subject.get("[foo][3]")).to eq 1
+      expect(subject.get("[foo][3]")).to be_a(Fixnum)
+      expect(subject.get("[foo][4]")).to eq 2
+      expect(subject.get("[foo][4]")).to be_a(Fixnum)
+    end
+  end
+
   #LOGSTASH-1529
   describe "gsub on a String with dynamic fields (%{}) in pattern" do
     config '
