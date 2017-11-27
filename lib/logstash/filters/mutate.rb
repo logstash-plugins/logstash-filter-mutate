@@ -45,7 +45,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   # Convert a field's value to a different type, like turning a string to an
   # integer. If the field value is an array, all members will be converted.
-  # If the field is a hash, no action will be taken.
+  # If the field is a hash no action will be taken.
   #
   # If the conversion type is `boolean`, the acceptable values are:
   #
@@ -54,6 +54,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #
   # If a value other than these is provided, it will pass straight through
   # and log a warning message.
+  #
+  # If the conversion type is `integer` and the value is a boolean, it will be converted as:
+  # * **True:**  `1`
+  # * **False:** `0`
   #
   # Valid conversion targets are: integer, float, string, and boolean.
   #
@@ -285,6 +289,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_integer(value)
+    return 1 if value == true
+    return 0 if value == false
     value.to_i
   end
 
