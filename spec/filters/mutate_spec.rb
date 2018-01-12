@@ -302,7 +302,7 @@ describe LogStash::Filters::Mutate do
       "upperMe" => [ "ExAmPlE", "EXAMPLE" ],
       "capitalizeMe" => [ "ExAmPlE", "Example" ],
       "intme" => [ "1234", "7890.4", "7.9" ],
-      "floatme" => [ "1234.455" ],
+      "floatme" => [ "1234.455", "1234,455" ],
       "rename1" => [ "hello world" ],
       "updateme" => [ "who cares" ],
       "replaceme" => [ "who cares" ]
@@ -319,7 +319,7 @@ describe LogStash::Filters::Mutate do
       expect(subject.get("upperMe")).to eq ['EXAMPLE', 'EXAMPLE']
       expect(subject.get("capitalizeMe")).to eq ['Example', 'Example']
       expect(subject.get("intme") ).to eq [1234, 7890, 7]
-      expect(subject.get("floatme")).to eq [1234.455]
+      expect(subject.get("floatme")).to eq [1234.455, 1234.455]
       expect(subject).not_to include("rename1")
       expect(subject.get("rename2")).to eq [ "hello world" ]
 
