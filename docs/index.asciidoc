@@ -37,6 +37,7 @@ This plugin supports the following configuration options plus the <<plugins-{typ
 | <<plugins-{type}s-{plugin}-join>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-lowercase>> |<<array,array>>|No
 | <<plugins-{type}s-{plugin}-merge>> |<<hash,hash>>|No
+| <<plugins-{type}s-{plugin}-coerce>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-rename>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-replace>> |<<hash,hash>>|No
 | <<plugins-{type}s-{plugin}-split>> |<<hash,hash>>|No
@@ -179,6 +180,23 @@ Example:
     filter {
       mutate {
          merge => { "dest_field" => "added_field" }
+      }
+    }
+
+[id="plugins-{type}s-{plugin}-coerce"]
+===== `coerce` 
+
+  * Value type is <<hash,hash>>
+  * There is no default value for this setting.
+
+Set the default value of a field that exists but is null
+
+Example:
+[source,ruby]
+    filter {
+      mutate {
+        # Sets the default value of the 'field1' field to 'default_value'
+        coerce => { "field1" => "default_value" }
       }
     }
 
