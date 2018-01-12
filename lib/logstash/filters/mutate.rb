@@ -7,6 +7,18 @@ require "logstash/namespace"
 class LogStash::Filters::Mutate < LogStash::Filters::Base
   config_name "mutate"
 
+  # Sets a default value when the field exists but the value is null.
+  #
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #         # Sets the default value of the 'field1' field to 'default_value'
+  #         coerce => { "field1" => "default_value" }
+  #       }
+  #     }
+  config :coerce, :validate => :hash
+
   # Rename one or more fields.
   #
   # Example:
@@ -227,6 +239,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def filter(event)
+    coerce(event) if @coerce
     rename(event) if @rename
     update(event) if @update
     replace(event) if @replace
@@ -246,6 +259,13 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   private
+
+  def coerce(event)
+    @coerce.each do |field, default_value|
+      next unless event.include?(field) && event.get(field)==nil
+      event.set(field, event.sprintf(default_value))
+    end
+  end
 
   def rename(event)
     @rename.each do |old, new|

@@ -287,6 +287,7 @@ describe LogStash::Filters::Mutate do
           replace => [ "newfield", "newnew" ]
           update => [ "nosuchfield", "weee" ]
           update => [ "updateme", "updated" ]
+
         }
       }
     CONFIG
@@ -737,6 +738,28 @@ describe LogStash::Filters::Mutate do
     sample("foo" => "bar", "list" => "baz") do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq "bar"
+    end
+  end
+
+  describe "coerce arrays fields with default values when null" do
+    config '
+      filter {
+        mutate {
+          coerce => { 
+            "field1" => "Hello"
+            "field2" => "Bye"
+            "field3" => 5
+            "field4" => false
+          }
+        }
+      }'
+
+
+    sample("field1" => nil, "field2" => nil, "field3" => nil, "field4" => true) do
+      expect(subject.get("field1")).to eq("Hello")
+      expect(subject.get("field2")).to eq("Bye")
+      expect(subject.get("field3")).to eq("5")
+      expect(subject.get("field4")).to eq(true)
     end
   end
 
