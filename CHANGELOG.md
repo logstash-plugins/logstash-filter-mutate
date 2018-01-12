@@ -1,3 +1,6 @@
+## 3.3.0
+ - feature: Added capitalize feature.
+
 ## 3.2.0
   - Support boolean to integer conversion #107
   
