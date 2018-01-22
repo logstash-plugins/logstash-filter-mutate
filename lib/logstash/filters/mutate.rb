@@ -327,7 +327,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_float(value)
-    value.to_f
+    return value.gsub(',','.').to_f if value.include?(',')
+    return value.to_f
   end
 
   def convert_boolean(value)
