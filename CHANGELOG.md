@@ -1,9 +1,12 @@
+## 3.3.1
+ - Fix: Number strings using a **decimal comma** (e.g. 1,23), added convert support to specify integer_eu and float_eu.
+
 ## 3.3.0
  - feature: Added capitalize feature.
 
 ## 3.2.0
   - Support boolean to integer conversion #107
-  
+
 ## 3.1.7
   - Update gemspec summary
 

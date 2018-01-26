@@ -595,6 +595,102 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert various US/UK strings" do
+    describe "to integer" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "integer"
+              "[foo][1]" => "integer"
+              "[foo][2]" => "integer"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1,000", "1,234,567.8", "123.4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000
+        expect(subject.get("[foo][0]")).to be_a(Fixnum)
+        expect(subject.get("[foo][1]")).to eq 1234567
+        expect(subject.get("[foo][1]")).to be_a(Fixnum)
+        expect(subject.get("[foo][2]")).to eq 123
+        expect(subject.get("[foo][2]")).to be_a(Fixnum)
+      end
+    end
+
+    describe "to float" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "float"
+              "[foo][1]" => "float"
+              "[foo][2]" => "float"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1,000", "1,234,567.8", "123.4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000.0
+        expect(subject.get("[foo][0]")).to be_a(Float)
+        expect(subject.get("[foo][1]")).to eq 1234567.8
+        expect(subject.get("[foo][1]")).to be_a(Float)
+        expect(subject.get("[foo][2]")).to eq 123.4
+        expect(subject.get("[foo][2]")).to be_a(Float)
+      end
+    end
+  end
+
+  describe "convert various EU style strings" do
+    describe "to integer" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "integer_eu"
+              "[foo][1]" => "integer_eu"
+              "[foo][2]" => "integer_eu"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1.000", "1.234.567,8", "123,4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000
+        expect(subject.get("[foo][0]")).to be_a(Fixnum)
+        expect(subject.get("[foo][1]")).to eq 1234567
+        expect(subject.get("[foo][1]")).to be_a(Fixnum)
+        expect(subject.get("[foo][2]")).to eq 123
+        expect(subject.get("[foo][2]")).to be_a(Fixnum)
+      end
+    end
+
+    describe "to float" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "float_eu"
+              "[foo][1]" => "float_eu"
+              "[foo][2]" => "float_eu"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1.000", "1.234.567,8", "123,4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000.0
+        expect(subject.get("[foo][0]")).to be_a(Float)
+        expect(subject.get("[foo][1]")).to eq 1234567.8
+        expect(subject.get("[foo][1]")).to be_a(Float)
+        expect(subject.get("[foo][2]")).to eq 123.4
+        expect(subject.get("[foo][2]")).to be_a(Float)
+      end
+    end
+  end
+
   #LOGSTASH-1529
   describe "gsub on a String with dynamic fields (%{}) in pattern" do
     config '
@@ -745,7 +841,7 @@ describe LogStash::Filters::Mutate do
     config '
       filter {
         mutate {
-          coerce => { 
+          coerce => {
             "field1" => "Hello"
             "field2" => "Bye"
             "field3" => 5

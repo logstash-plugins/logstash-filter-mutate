@@ -5,6 +5,10 @@ require "logstash/namespace"
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, remove, replace, and modify fields in your events.
 class LogStash::Filters::Mutate < LogStash::Filters::Base
+
+  MUC_CP = ",."
+  MUC_UP = "_."
+
   config_name "mutate"
 
   # Sets a default value when the field exists but the value is null.
@@ -206,7 +210,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   CONVERT_PREFIX = "convert_".freeze
 
   def register
-    valid_conversions = %w(string integer float boolean)
+    valid_conversions = %w(string integer float boolean integer_eu float_eu )
     # TODO(sissel): Validate conversion requests if provided.
     @convert.nil? or @convert.each do |field, type|
       if !valid_conversions.include?(type)
@@ -300,7 +304,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       when Hash
         @logger.debug? && @logger.debug("I don't know how to type convert a hash, skipping", :field => field, :value => original)
       when Array
-        event.set(field, original.map { |v| converter.call(v) })
+        event.set(field, original.map { |v| v.nil? ? v : converter.call(v) })
       when NilClass
         # ignore
       else
@@ -320,21 +324,32 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     value.to_s.force_encoding(Encoding::UTF_8)
   end
 
-  def convert_integer(value)
-    return 1 if value == true
-    return 0 if value == false
-    value.to_i
-  end
-
-  def convert_float(value)
-    value.to_f
-  end
-
   def convert_boolean(value)
     return true if value =~ TRUE_REGEX
     return false if value.empty? || value =~ FALSE_REGEX
     @logger.warn("Failed to convert #{value} into boolean.")
     value
+  end
+
+  def convert_integer(value)
+    return 1 if value == true
+    return 0 if value == false
+    value.squeeze(MUC_CP).tr(MUC_CP, MUC_UP).to_i
+  end
+
+  def convert_float(value)
+    value.squeeze(MUC_CP).tr(MUC_CP, MUC_UP).to_f
+  end
+
+  def convert_integer_eu(value)
+    return 1 if value == true
+    return 0 if value == false
+    value.squeeze(MUC_CP).tr(MUC_CP.reverse, MUC_UP).to_i
+  end
+
+  def convert_float_eu(value)
+    # cnv_translate_eu(value).to_f
+    value.squeeze(MUC_CP).tr(MUC_CP.reverse, MUC_UP).to_f
   end
 
   def gsub(event)
