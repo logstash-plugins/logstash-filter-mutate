@@ -5,10 +5,6 @@ require "logstash/namespace"
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, remove, replace, and modify fields in your events.
 class LogStash::Filters::Mutate < LogStash::Filters::Base
-
-  MUC_CP = ",."
-  MUC_UP = "_."
-
   config_name "mutate"
 
   # Sets a default value when the field exists but the value is null.
@@ -334,22 +330,27 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def convert_integer(value)
     return 1 if value == true
     return 0 if value == false
-    value.squeeze(MUC_CP).tr(MUC_CP, MUC_UP).to_i
+    return value.to_i if !value.is_a?(String)
+    value.tr(",", "").to_i
   end
 
   def convert_float(value)
-    value.squeeze(MUC_CP).tr(MUC_CP, MUC_UP).to_f
+    value.tr(",", "").to_f
   end
 
   def convert_integer_eu(value)
     return 1 if value == true
     return 0 if value == false
-    value.squeeze(MUC_CP).tr(MUC_CP.reverse, MUC_UP).to_i
+    cnv_replace_eu(value).to_i
   end
 
   def convert_float_eu(value)
-    # cnv_translate_eu(value).to_f
-    value.squeeze(MUC_CP).tr(MUC_CP.reverse, MUC_UP).to_f
+    cnv_replace_eu(value).to_f
+  end
+
+  def cnv_replace_eu(value)
+    return value if !value.is_a?(String)
+    value.tr(".", "").tr(",", ".")
   end
 
   def gsub(event)
