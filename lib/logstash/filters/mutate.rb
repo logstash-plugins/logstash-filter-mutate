@@ -71,7 +71,13 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # * **True:**  `1`
   # * **False:** `0`
   #
-  # Valid conversion targets are: integer, float, string, and boolean.
+  # If you have numeric strings that have decimal commas (Europe and ex-colonies)
+  # e.g. "1.234,56" or "2.340", by using conversion targets of integer_eu or float_eu
+  # the convert function will treat "." as a group separator and "," as a decimal separator.
+  #
+  # Conversion targets of integer or float will now correctly handle "," as a group separator.
+  #
+  # Valid conversion targets are: integer, float, integer_eu, float_eu, string, and boolean.
   #
   # Example:
   # [source,ruby]
@@ -206,7 +212,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   CONVERT_PREFIX = "convert_".freeze
 
   def register
-    valid_conversions = %w(string integer float boolean)
+    valid_conversions = %w(string integer float boolean integer_eu float_eu )
     # TODO(sissel): Validate conversion requests if provided.
     @convert.nil? or @convert.each do |field, type|
       if !valid_conversions.include?(type)
@@ -300,7 +306,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       when Hash
         @logger.debug? && @logger.debug("I don't know how to type convert a hash, skipping", :field => field, :value => original)
       when Array
-        event.set(field, original.map { |v| converter.call(v) })
+        event.set(field, original.map { |v| v.nil? ? v : converter.call(v) })
       when NilClass
         # ignore
       else
@@ -320,21 +326,37 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     value.to_s.force_encoding(Encoding::UTF_8)
   end
 
-  def convert_integer(value)
-    return 1 if value == true
-    return 0 if value == false
-    value.to_i
-  end
-
-  def convert_float(value)
-    value.to_f
-  end
-
   def convert_boolean(value)
     return true if value =~ TRUE_REGEX
     return false if value.empty? || value =~ FALSE_REGEX
     @logger.warn("Failed to convert #{value} into boolean.")
     value
+  end
+
+  def convert_integer(value)
+    return 1 if value == true
+    return 0 if value == false
+    return value.to_i if !value.is_a?(String)
+    value.tr(",", "").to_i
+  end
+
+  def convert_float(value)
+    value.tr(",", "").to_f
+  end
+
+  def convert_integer_eu(value)
+    return 1 if value == true
+    return 0 if value == false
+    cnv_replace_eu(value).to_i
+  end
+
+  def convert_float_eu(value)
+    cnv_replace_eu(value).to_f
+  end
+
+  def cnv_replace_eu(value)
+    return value if !value.is_a?(String)
+    value.tr(".", "").tr(",", ".")
   end
 
   def gsub(event)

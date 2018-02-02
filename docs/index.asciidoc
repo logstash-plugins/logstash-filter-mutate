@@ -53,7 +53,7 @@ filter plugins.
 &nbsp;
 
 [id="plugins-{type}s-{plugin}-convert"]
-===== `convert` 
+===== `convert`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -74,7 +74,13 @@ If the conversion type is `integer` and the value is a boolean, it will be conve
 * **True:**  `1`
 * **False:** `0`
 
-Valid conversion targets are: integer, float, string, and boolean.
+If you have numeric strings that have decimal commas (Europe and ex-colonies)
+e.g. "1.234,56" or "2.340", by using conversion targets of integer_eu or float_eu
+the convert function will treat "." as a group separator and "," as a decimal separator.
+
+Conversion targets of integer or float will now correctly handle "," as a group separator.
+
+Valid conversion targets are: integer, float, integer_eu, float_eu, string, and boolean.
 
 Example:
 [source,ruby]
@@ -85,7 +91,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-copy"]
-===== `copy` 
+===== `copy`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -101,7 +107,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-gsub"]
-===== `gsub` 
+===== `gsub`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -131,7 +137,7 @@ Example:
 
 
 [id="plugins-{type}s-{plugin}-join"]
-===== `join` 
+===== `join`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -147,7 +153,7 @@ Example:
    }
 
 [id="plugins-{type}s-{plugin}-lowercase"]
-===== `lowercase` 
+===== `lowercase`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -163,7 +169,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-merge"]
-===== `merge` 
+===== `merge`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -184,7 +190,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-coerce"]
-===== `coerce` 
+===== `coerce`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -201,7 +207,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-rename"]
-===== `rename` 
+===== `rename`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -218,7 +224,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-replace"]
-===== `replace` 
+===== `replace`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -235,7 +241,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-split"]
-===== `split` 
+===== `split`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -252,7 +258,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-strip"]
-===== `strip` 
+===== `strip`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -268,7 +274,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-update"]
-===== `update` 
+===== `update`
 
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
@@ -285,7 +291,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-uppercase"]
-===== `uppercase` 
+===== `uppercase`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
@@ -301,7 +307,7 @@ Example:
     }
 
 [id="plugins-{type}s-{plugin}-capitalize"]
-===== `capitalize` 
+===== `capitalize`
 
   * Value type is <<array,array>>
   * There is no default value for this setting.
