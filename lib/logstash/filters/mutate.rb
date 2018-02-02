@@ -71,7 +71,13 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # * **True:**  `1`
   # * **False:** `0`
   #
-  # Valid conversion targets are: integer, float, string, and boolean.
+  # If you have numeric strings that have decimal commas (Europe and ex-colonies)
+  # e.g. "1.234,56" or "2.340", by using conversion targets of integer_eu or float_eu
+  # the convert function will treat "." as a group separator and "," as a decimal separator.
+  #
+  # Conversion targets of integer or float will now correctly handle "," as a group separator.
+  #
+  # Valid conversion targets are: integer, float, integer_eu, float_eu, string, and boolean.
   #
   # Example:
   # [source,ruby]
