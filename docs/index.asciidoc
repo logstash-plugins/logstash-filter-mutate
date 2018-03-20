@@ -82,11 +82,16 @@ Conversion targets of integer or float will now correctly handle "," as a group 
 
 Valid conversion targets are: integer, float, integer_eu, float_eu, string, and boolean.
 
+This plugin can convert multiple fields in the same document, see the example below.
+
 Example:
 [source,ruby]
     filter {
       mutate {
-        convert => { "fieldname" => "integer" }
+        convert => { 
+          "fieldname" => "integer"
+          "booleanfield" => "boolean"
+        }
       }
     }
 
