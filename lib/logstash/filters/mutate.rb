@@ -341,6 +341,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_float(value)
+		return 1.0 if value == true
+		return 0.0 if value == false
+    return value.to_f if !value.is_a?(String)
     value.tr(",", "").to_f
   end
 
