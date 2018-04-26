@@ -415,6 +415,152 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert to float" do
+
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "field" => "float"
+          }
+        }
+      }
+    CONFIG
+
+    context 'when field is a string with no separator and dot decimal' do
+      sample({'field' => '3141.5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string with a comma separator and dot decimal' do
+      sample({'field' => '3,141.5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string comma separator and no decimal' do
+      sample({'field' => '3,141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a string no separator and no decimal' do
+      sample({'field' => '3141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a float' do
+      sample({'field' => 3.1415926}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3.1415926)
+      end
+    end
+
+    context 'when field is an integer' do
+      sample({'field' => 3}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3)
+      end
+    end
+
+    context 'when field is the true value' do
+      sample('field' => true) do
+        expect(subject.get('field')).to eq(1.0)
+      end
+    end
+
+    context 'when field is the false value' do
+      sample('field' => false) do
+        expect(subject.get('field')).to eq(0.0)
+      end
+    end
+
+    context 'when field is nil' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+
+    context 'when field is not set' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+  end
+
+
+  describe "convert to float_eu" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "field" => "float_eu"
+          }
+        }
+      }
+    CONFIG
+
+    context 'when field is a string with no separator and comma decimal' do
+      sample({'field' => '3141,5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string with a dot separator and comma decimal' do
+      sample({'field' => '3.141,5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string dot separator and no decimal' do
+      sample({'field' => '3.141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a string no separator and no decimal' do
+      sample({'field' => '3141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a float' do
+      sample({'field' => 3.1415926}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3.1415926)
+      end
+    end
+
+    context 'when field is an integer' do
+      sample({'field' => 3}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3)
+      end
+    end
+
+    context 'when field is the true value' do
+      sample('field' => true) do
+        expect(subject.get('field')).to eq(1.0)
+      end
+    end
+
+    context 'when field is the false value' do
+      sample('field' => false) do
+        expect(subject.get('field')).to eq(0.0)
+      end
+    end
+
+    context 'when field is nil' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+
+    context 'when field is not set' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+  end
+
   describe "gsub on a String" do
     config '
       filter {
