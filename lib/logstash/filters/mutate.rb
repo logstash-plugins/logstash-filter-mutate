@@ -341,22 +341,29 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_float(value)
-    value.tr(",", "").to_f
+    return 1.0 if value == true
+    return 0.0 if value == false
+    value = value.delete(",") if value.kind_of?(String)
+    value.to_f
   end
 
   def convert_integer_eu(value)
-    return 1 if value == true
-    return 0 if value == false
-    cnv_replace_eu(value).to_i
+    us_value = cnv_replace_eu(value)
+    convert_integer(us_value)
   end
 
   def convert_float_eu(value)
-    cnv_replace_eu(value).to_f
+    us_value = cnv_replace_eu(value)
+    convert_float(us_value)
   end
 
+  # When given a String, returns a new String whose contents have been converted from
+  # EU-style comma-decimals and dot-separators to US-style dot-decimals and comma-separators.
+  #
+  # For all other values, returns value unmodified.
   def cnv_replace_eu(value)
     return value if !value.is_a?(String)
-    value.tr(".", "").tr(",", ".")
+    value.tr(",.", ".,")
   end
 
   def gsub(event)

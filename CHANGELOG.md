@@ -1,3 +1,6 @@
+## 3.3.2
+ - Fix: when converting to `float` and `float_eu`, explicitly support same range of inputs as their integer counterparts; eliminates a regression introduced in 3.3.1 in which support for non-string inputs was inadvertently removed.
+
 ## 3.3.1
  - Fix: Number strings using a **decimal comma** (e.g. 1,23), added convert support to specify integer_eu and float_eu.
 
