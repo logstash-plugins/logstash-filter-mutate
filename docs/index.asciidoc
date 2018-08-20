@@ -23,6 +23,8 @@ include::{include_path}/plugin_header.asciidoc[]
 The mutate filter allows you to perform general mutations on fields. You
 can rename, remove, replace, and modify fields in your events.
 
+Warning: Each mutate must be in its own code block. See bug https://github.com/logstash-plugins/logstash-filter-mutate/issues/27
+
 [id="plugins-{type}s-{plugin}-options"]
 ==== Mutate Filter Configuration Options
 
