@@ -373,45 +373,72 @@ describe LogStash::Filters::Mutate do
     config <<-CONFIG
       filter {
         mutate {
-          convert => { "true_field"  => "boolean" }
-          convert => { "false_field" => "boolean" }
-          convert => { "true_upper"  => "boolean" }
-          convert => { "false_upper" => "boolean" }
-          convert => { "true_one"    => "boolean" }
-          convert => { "false_zero"  => "boolean" }
-          convert => { "true_yes"    => "boolean" }
-          convert => { "false_no"    => "boolean" }
-          convert => { "true_y"      => "boolean" }
-          convert => { "false_n"     => "boolean" }
-          convert => { "wrong_field" => "boolean" }
+          convert => { "true_field"         => "boolean" }
+          convert => { "false_field"        => "boolean" }
+          convert => { "true_upper"         => "boolean" }
+          convert => { "false_upper"        => "boolean" }
+          convert => { "true_one"           => "boolean" }
+          convert => { "false_zero"         => "boolean" }
+          convert => { "true_yes"           => "boolean" }
+          convert => { "false_no"           => "boolean" }
+          convert => { "true_y"             => "boolean" }
+          convert => { "false_n"            => "boolean" }
+          convert => { "wrong_field"        => "boolean" }
+          convert => { "integer_false"      => "boolean" }
+          convert => { "integer_true"       => "boolean" }
+          convert => { "integer_negative"   => "boolean" }
+          convert => { "integer_wrong"      => "boolean" }
+          convert => { "float_true"         => "boolean" }
+          convert => { "float_false"        => "boolean" }
+          convert => { "float_negative"     => "boolean" }
+          convert => { "float_wrong"        => "boolean" }
+          convert => { "float_wrong2"       => "boolean" }
         }
       }
     CONFIG
     event = {
-      "true_field"  => "true",
-      "false_field" => "false",
-      "true_upper"  => "True",
-      "false_upper" => "False",
-      "true_one"    => "1",
-      "false_zero"  => "0",
-      "true_yes"    => "yes",
-      "false_no"    => "no",
-      "true_y"      => "Y",
-      "false_n"     => "N",
-      "wrong_field" => "none of the above"
+      "true_field"      => "true",
+      "false_field"     => "false",
+      "true_upper"      => "True",
+      "false_upper"     => "False",
+      "true_one"        => "1",
+      "false_zero"      => "0",
+      "true_yes"        => "yes",
+      "false_no"        => "no",
+      "true_y"          => "Y",
+      "false_n"         => "N",
+      "wrong_field"     => "none of the above",
+      "integer_false"   => 0,
+      "integer_true"    => 1,
+      "integer_negative"=> -1,
+      "integer_wrong"   => 2,
+      "float_true"      => 1.0,
+      "float_false"     => 0.0,
+      "float_negative"  => -1.0,
+      "float_wrong"     => 1.0123,
+      "float_wrong2"    => 0.01
     }
     sample event do
-      expect(subject.get("true_field") ).to eq(true)
-      expect(subject.get("false_field")).to eq(false)
-      expect(subject.get("true_upper") ).to eq(true)
-      expect(subject.get("false_upper")).to eq(false)
-      expect(subject.get("true_one")   ).to eq(true)
-      expect(subject.get("false_zero") ).to eq(false)
-      expect(subject.get("true_yes")   ).to eq(true)
-      expect(subject.get("false_no")   ).to eq(false)
-      expect(subject.get("true_y")     ).to eq(true)
-      expect(subject.get("false_n")    ).to eq(false)
-      expect(subject.get("wrong_field")).to eq("none of the above")
+      expect(subject.get("true_field")      ).to eq(true)
+      expect(subject.get("false_field")     ).to eq(false)
+      expect(subject.get("true_upper")      ).to eq(true)
+      expect(subject.get("false_upper")     ).to eq(false)
+      expect(subject.get("true_one")        ).to eq(true)
+      expect(subject.get("false_zero")      ).to eq(false)
+      expect(subject.get("true_yes")        ).to eq(true)
+      expect(subject.get("false_no")        ).to eq(false)
+      expect(subject.get("true_y")          ).to eq(true)
+      expect(subject.get("false_n")         ).to eq(false)
+      expect(subject.get("wrong_field")     ).to eq("none of the above")
+      expect(subject.get("integer_false")   ).to eq(false)
+      expect(subject.get("integer_true")    ).to eq(true)
+      expect(subject.get("integer_negative")).to eq("-1")
+      expect(subject.get("integer_wrong")   ).to eq("2")
+      expect(subject.get("float_true")      ).to eq(true)
+      expect(subject.get("float_false")     ).to eq(false)
+      expect(subject.get("float_negative")  ).to eq("-1.0")
+      expect(subject.get("float_wrong")     ).to eq("1.0123")
+      expect(subject.get("float_wrong2")    ).to eq("0.01")
     end
   end
 
@@ -487,6 +514,7 @@ describe LogStash::Filters::Mutate do
       end
     end
   end
+  
 
 
   describe "convert to float_eu" do
