@@ -327,9 +327,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_boolean(value)
-    value = value.to_s
-    return true if value =~ TRUE_REGEX
-    return false if value.empty? || value =~ FALSE_REGEX
+    return true if value.to_s =~ TRUE_REGEX
+    return false if value.to_s.empty? || value.to_s =~ FALSE_REGEX
     @logger.warn("Failed to convert #{value} into boolean.")
     value
   end

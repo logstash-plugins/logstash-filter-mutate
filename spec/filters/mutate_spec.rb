@@ -393,6 +393,8 @@ describe LogStash::Filters::Mutate do
           convert => { "float_negative"     => "boolean" }
           convert => { "float_wrong"        => "boolean" }
           convert => { "float_wrong2"       => "boolean" }
+          convert => { "array"              => "boolean" }
+          convert => { "hash"               => "boolean" }
         }
       }
     CONFIG
@@ -416,7 +418,9 @@ describe LogStash::Filters::Mutate do
       "float_false"     => 0.0,
       "float_negative"  => -1.0,
       "float_wrong"     => 1.0123,
-      "float_wrong2"    => 0.01
+      "float_wrong2"    => 0.01,
+      "array"           => [ "1", "0", 0,1,2],
+      "hash"            => { "a" => 0 }
     }
     sample event do
       expect(subject.get("true_field")      ).to eq(true)
@@ -432,13 +436,15 @@ describe LogStash::Filters::Mutate do
       expect(subject.get("wrong_field")     ).to eq("none of the above")
       expect(subject.get("integer_false")   ).to eq(false)
       expect(subject.get("integer_true")    ).to eq(true)
-      expect(subject.get("integer_negative")).to eq("-1")
-      expect(subject.get("integer_wrong")   ).to eq("2")
+      expect(subject.get("integer_negative")).to eq(-1)
+      expect(subject.get("integer_wrong")   ).to eq(2)
       expect(subject.get("float_true")      ).to eq(true)
       expect(subject.get("float_false")     ).to eq(false)
-      expect(subject.get("float_negative")  ).to eq("-1.0")
-      expect(subject.get("float_wrong")     ).to eq("1.0123")
-      expect(subject.get("float_wrong2")    ).to eq("0.01")
+      expect(subject.get("float_negative")  ).to eq(-1.0)
+      expect(subject.get("float_wrong")     ).to eq(1.0123)
+      expect(subject.get("float_wrong2")    ).to eq(0.01)
+      expect(subject.get("array")           ).to eq([true, false, false, true,2])
+      expect(subject.get("hash")            ).to eq({ "a" => 0 })
     end
   end
 
@@ -515,7 +521,6 @@ describe LogStash::Filters::Mutate do
     end
   end
   
-
 
   describe "convert to float_eu" do
     config <<-CONFIG
