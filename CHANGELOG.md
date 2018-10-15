@@ -1,3 +1,7 @@
+## 3.3.4
+ - Changed documentation to clarify execution order and to provide workaround 
+ [#128](https://github.com/logstash-plugins/logstash-filter-mutate/pull/128)
+
 ## 3.3.3
  - Changed documentation to clarify use of `replace` config option [#125](https://github.com/logstash-plugins/logstash-filter-mutate/pull/125)
 
