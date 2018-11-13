@@ -207,8 +207,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :copy, :validate => :hash
 
-  TRUE_REGEX = (/^(true|t|yes|y|1)$/i).freeze
-  FALSE_REGEX = (/^(false|f|no|n|0)$/i).freeze
+  TRUE_REGEX = (/^(true|t|yes|y|1|1.0)$/i).freeze
+  FALSE_REGEX = (/^(false|f|no|n|0|0.0)$/i).freeze
   CONVERT_PREFIX = "convert_".freeze
 
   def register
@@ -327,8 +327,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_boolean(value)
-    return true if value =~ TRUE_REGEX
-    return false if value.empty? || value =~ FALSE_REGEX
+    return true if value.to_s =~ TRUE_REGEX
+    return false if value.to_s.empty? || value.to_s =~ FALSE_REGEX
     @logger.warn("Failed to convert #{value} into boolean.")
     value
   end
