@@ -152,7 +152,7 @@ Example:
 [source,ruby]
     filter {
       mutate {
-         copy => { "source_field" => "dest_field" }
+         copy => { "source_field" => "dest_field"-"somefield" }
       }
     }
 
