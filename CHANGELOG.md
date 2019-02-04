@@ -1,5 +1,5 @@
 ## 3.4.0
- - Added ability to directly convert from integer and float to boolean
+ - Added ability to directly convert from integer and float to boolean [#127](https://github.com/logstash-plugins/logstash-filter-mutate/pull/127)
 
 ## 3.3.4
  - Changed documentation to clarify execution order and to provide workaround 
