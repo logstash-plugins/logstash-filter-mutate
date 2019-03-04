@@ -207,6 +207,17 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :copy, :validate => :hash
 
+  # Omit a variable if it as a default value.
+  #
+  # Example:
+  # [source,ruby]
+  #     filter {
+  #       mutate {
+  #         omitempty => [ "fieldname" ]
+  #       }
+  #     }
+  config :omitempty, :validate => :array
+
   TRUE_REGEX = (/^(true|t|yes|y|1|1.0)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0|0.0)$/i).freeze
   CONVERT_PREFIX = "convert_".freeze
@@ -260,6 +271,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     join(event) if @join
     merge(event) if @merge
     copy(event) if @copy
+    omitempty(event) if @omitempty
 
     filter_matched(event)
   end
@@ -463,6 +475,26 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         original
       end
       event.set(field, result)
+    end
+  end
+
+  def omitempty(event)
+    @omitempty.each do |field|
+      original = event.get(field)
+      if original.nil?
+        event.remove(field)
+        next
+      end
+      result = case original
+               when String, Array, Hash
+                 original.empty? ? nil : original
+               when Integer
+                 original == 0 ? nil : original
+               else
+                 @logger.debug? && @logger.debug("Can't omitempty something that isn't a string,array,hash,integer", :field => field, :value => original)
+                 original
+               end
+      event.remove(field) if result.nil?
     end
   end
 
