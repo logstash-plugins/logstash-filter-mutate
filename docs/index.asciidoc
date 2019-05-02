@@ -245,7 +245,8 @@ Example:
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
 
-Set the default value of a field that exists but is null
+Set the default value of a field that exists but is null. The default value can include `%{foo}` strings
+to help you build a new value from other parts of the event.
 
 Example:
 [source,ruby]
@@ -330,7 +331,8 @@ Example:
   * There is no default value for this setting.
 
 Update an existing field with a new value. If the field does not exist,
-then no action will be taken.
+then no action will be taken. The new value can include `%{foo}` strings
+to help you build a new value from other parts of the event.
 
 Example:
 [source,ruby]
