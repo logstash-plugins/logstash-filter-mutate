@@ -25,7 +25,6 @@ end
 
 logstash_version = Gem::Version.create(LOGSTASH_CORE_VERSION)
 
-# 
 if (Gem::Requirement.create('~> 7.0').satisfied_by?(logstash_version) ||
    (Gem::Requirement.create('~> 6.4').satisfied_by?(logstash_version) && LogStash::SETTINGS.get('config.field_reference.parser') == 'STRICT'))
   describe LogStash::Filters::Mutate do
