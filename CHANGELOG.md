@@ -1,4 +1,4 @@
-## 3.4.1
+## 3.5.1
  - feature: Added 'omitempty' feature to remove fields with default or null values
 
 ## 3.4.0
