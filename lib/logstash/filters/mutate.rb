@@ -218,6 +218,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #     }
   config :omitempty, :validate => :array
 
+  # Tag to apply if the operation errors
+  config :tag_on_failure, :validate => :string, :default => '_mutate_error'
+
   TRUE_REGEX = (/^(true|t|yes|y|1|1.0)$/i).freeze
   FALSE_REGEX = (/^(false|f|no|n|0|0.0)$/i).freeze
   CONVERT_PREFIX = "convert_".freeze
@@ -274,6 +277,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     omitempty(event) if @omitempty
 
     filter_matched(event)
+  rescue => ex
+    meta = { :exception => ex.message }
+    meta[:backtrace] = ex.backtrace if logger.debug?
+    logger.warn('Exception caught while applying mutate filter', meta)
+    event.tag(@tag_on_failure)
   end
 
   private

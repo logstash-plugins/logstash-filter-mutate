@@ -23,6 +23,56 @@ module LogStash::Environment
   end
 end
 
+logstash_version = Gem::Version.create(LOGSTASH_CORE_VERSION)
+
+if (Gem::Requirement.create('~> 7.0').satisfied_by?(logstash_version) ||
+   (Gem::Requirement.create('~> 6.4').satisfied_by?(logstash_version) && LogStash::SETTINGS.get('config.field_reference.parser') == 'STRICT'))
+  describe LogStash::Filters::Mutate do
+    let(:config) { Hash.new }
+    subject(:mutate_filter) { LogStash::Filters::Mutate.new(config) }
+
+    before(:each) { mutate_filter.register }
+
+    let(:event) { LogStash::Event.new(attrs) }
+
+    context 'when operation would cause an error' do
+
+      let(:invalid_field_name) { "[[][[[[]message" }
+      let(:config) do
+        super().merge("add_field" => {invalid_field_name => "nope"})
+      end
+
+      shared_examples('catch and tag error') do
+        let(:expected_tag) { '_mutate_error' }
+
+        let(:event) { LogStash::Event.new({"message" => "foo"})}
+
+        context 'when the event is filtered' do
+          before(:each) { mutate_filter.filter(event) }
+          it 'does not raise an exception' do
+            # noop
+          end
+
+          it 'tags the event with the expected tag' do
+            expect(event).to include('tags')
+            expect(event.get('tags')).to include(expected_tag)
+          end
+        end
+      end
+
+      context 'when `tag_on_failure` is not provided' do
+        include_examples 'catch and tag error'
+      end
+
+      context 'when `tag_on_failure` is provided' do
+        include_examples 'catch and tag error' do
+          let(:expected_tag) { 'my_custom_tag' }
+          let(:config) { super().merge('tag_on_failure' => expected_tag) }
+        end
+      end
+    end
+  end
+end
 
 describe LogStash::Filters::Mutate do
 
