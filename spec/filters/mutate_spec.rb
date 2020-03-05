@@ -570,7 +570,7 @@ describe LogStash::Filters::Mutate do
       end
     end
   end
-  
+
 
   describe "convert to float_eu" do
     config <<-CONFIG
@@ -745,8 +745,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("field_one")
-      insist { subject }.include?("destination")
+      expect(subject).to_not include("field_one")
+      expect(subject).to include("destination")
     end
   end
 
@@ -760,8 +760,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("origin")
-      insist { subject }.include?("field_one")
+      expect(subject).to_not include("origin")
+      expect(subject).to include("field_one")
     end
   end
 
