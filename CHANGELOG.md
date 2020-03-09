@@ -1,3 +1,6 @@
+## 3.5.1
+ - feature: Added 'omitempty' feature to remove fields with default or null values
+
 ## 3.4.0
  - Added ability to directly convert from integer and float to boolean [#127](https://github.com/logstash-plugins/logstash-filter-mutate/pull/127)
 

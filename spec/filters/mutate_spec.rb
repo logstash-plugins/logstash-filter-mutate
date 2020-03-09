@@ -1088,4 +1088,45 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "omitempty" do
+
+    config <<-CONFIG
+      filter {
+        mutate {
+          omitempty => ["field"]
+        }
+      }
+    CONFIG
+
+    context 'when field is a string' do
+      sample({'field' => ''}) do
+        expect(subject).not_to include("field")
+      end
+    end
+
+    context 'when field is an integer' do
+      sample({'field' => 0}) do
+        expect(subject).not_to include("field")
+      end
+    end
+
+    context 'when field is an empty hash' do
+      sample({'field' => {}}) do
+        expect(subject).not_to include("field")
+      end
+    end
+
+    context 'when field is an empty array' do
+      sample({'field' => []}) do
+        expect(subject).not_to include("field")
+      end
+    end
+
+    context 'when field is null' do
+      sample({'field' => nil}) do
+        expect(subject).not_to include("field")
+      end
+    end
+  end
+
 end
