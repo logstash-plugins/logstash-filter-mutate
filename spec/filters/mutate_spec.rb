@@ -570,7 +570,7 @@ describe LogStash::Filters::Mutate do
       end
     end
   end
-  
+
 
   describe "convert to float_eu" do
     config <<-CONFIG
@@ -745,8 +745,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("field_one")
-      insist { subject }.include?("destination")
+      expect(subject).to_not include("field_one")
+      expect(subject).to include("destination")
     end
   end
 
@@ -760,8 +760,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("origin")
-      insist { subject }.include?("field_one")
+      expect(subject).to_not include("origin")
+      expect(subject).to include("field_one")
     end
   end
 
@@ -776,7 +776,7 @@ describe LogStash::Filters::Mutate do
 
     sample({ "foo" => { "bar" => "1000" } }) do
       expect(subject.get("[foo][bar]")).to eq 1000
-      expect(subject.get("[foo][bar]")).to be_a(Fixnum)
+      expect(subject.get("[foo][bar]")).to be_a(Integer)
     end
  end
 
@@ -791,7 +791,7 @@ describe LogStash::Filters::Mutate do
 
     sample({ "foo" => ["100", "200"] }) do
       expect(subject.get("[foo][0]")).to eq 100
-      expect(subject.get("[foo][0]")).to be_a(Fixnum)
+      expect(subject.get("[foo][0]")).to be_a(Integer)
     end
   end
 
@@ -812,15 +812,15 @@ describe LogStash::Filters::Mutate do
 
     sample({ "foo" => [false, true, "0", "1", "2"] }) do
       expect(subject.get("[foo][0]")).to eq 0
-      expect(subject.get("[foo][0]")).to be_a(Fixnum)
+      expect(subject.get("[foo][0]")).to be_a(Integer)
       expect(subject.get("[foo][1]")).to eq 1
-      expect(subject.get("[foo][1]")).to be_a(Fixnum)
+      expect(subject.get("[foo][1]")).to be_a(Integer)
       expect(subject.get("[foo][2]")).to eq 0
-      expect(subject.get("[foo][2]")).to be_a(Fixnum)
+      expect(subject.get("[foo][2]")).to be_a(Integer)
       expect(subject.get("[foo][3]")).to eq 1
-      expect(subject.get("[foo][3]")).to be_a(Fixnum)
+      expect(subject.get("[foo][3]")).to be_a(Integer)
       expect(subject.get("[foo][4]")).to eq 2
-      expect(subject.get("[foo][4]")).to be_a(Fixnum)
+      expect(subject.get("[foo][4]")).to be_a(Integer)
     end
   end
 
@@ -840,11 +840,11 @@ describe LogStash::Filters::Mutate do
 
       sample({ "foo" => ["1,000", "1,234,567.8", "123.4"] }) do
         expect(subject.get("[foo][0]")).to eq 1000
-        expect(subject.get("[foo][0]")).to be_a(Fixnum)
+        expect(subject.get("[foo][0]")).to be_a(Integer)
         expect(subject.get("[foo][1]")).to eq 1234567
-        expect(subject.get("[foo][1]")).to be_a(Fixnum)
+        expect(subject.get("[foo][1]")).to be_a(Integer)
         expect(subject.get("[foo][2]")).to eq 123
-        expect(subject.get("[foo][2]")).to be_a(Fixnum)
+        expect(subject.get("[foo][2]")).to be_a(Integer)
       end
     end
 
@@ -888,11 +888,11 @@ describe LogStash::Filters::Mutate do
 
       sample({ "foo" => ["1.000", "1.234.567,8", "123,4"] }) do
         expect(subject.get("[foo][0]")).to eq 1000
-        expect(subject.get("[foo][0]")).to be_a(Fixnum)
+        expect(subject.get("[foo][0]")).to be_a(Integer)
         expect(subject.get("[foo][1]")).to eq 1234567
-        expect(subject.get("[foo][1]")).to be_a(Fixnum)
+        expect(subject.get("[foo][1]")).to be_a(Integer)
         expect(subject.get("[foo][2]")).to eq 123
-        expect(subject.get("[foo][2]")).to be_a(Fixnum)
+        expect(subject.get("[foo][2]")).to be_a(Integer)
       end
     end
 

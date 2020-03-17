@@ -23,5 +23,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "logstash-core-plugin-api", ">= 1.60", "<= 2.99"
   s.add_development_dependency "logstash-patterns-core"
   s.add_development_dependency "logstash-filter-grok"
+  s.add_development_dependency "logstash-codec-plain"
   s.add_development_dependency "logstash-devutils"
 end
