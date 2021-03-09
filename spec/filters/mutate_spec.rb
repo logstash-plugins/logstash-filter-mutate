@@ -399,10 +399,9 @@ describe LogStash::Filters::Mutate do
     }
 
     sample event do
-      # ATM, only the ASCII characters will case change
-      expect(subject.get("lowerme")).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
-      expect(subject.get("upperme")).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
-      expect(subject.get("capitalizeme")).to eq [ "АБВГД\u0000mmm", "こにちわ", "Xyzółć", "NÎcË gÛŸ"]
+      expect(subject.get("lowerme")).to eq [ "абвгд\0mmm", "こにちわ", "xyzółć", "nîcë gûÿ"]
+      expect(subject.get("upperme")).to eq [ "АБВГД\0MMM", "こにちわ", "XYZÓŁĆ", "NÎCË GÛŸ"]
+      expect(subject.get("capitalizeme")).to eq [ "Абвгд\0mmm", "こにちわ", "Xyzółć", "Nîcë gûÿ"]
     end
   end
 
