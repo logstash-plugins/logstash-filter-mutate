@@ -153,6 +153,21 @@ describe LogStash::Filters::Mutate do
         expect(event).not_to include("fake_field")
       end
     end
+    context "avoid mutating contents of field, as they may be shared" do
+      let(:original_value) { "oRiGiNaL vAlUe".freeze }
+      let(:shared_value) { original_value.dup }
+      let(:attrs) { {"field" => shared_value } }
+      let(:config) do
+        {
+          operation => "field"
+        }
+      end
+
+      it 'should not mutate the value' do
+        subject.filter(event)
+        expect(shared_value).to eq(original_value)
+      end
+    end
   end
 end
 
