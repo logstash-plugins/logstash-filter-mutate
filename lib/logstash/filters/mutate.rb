@@ -424,8 +424,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
             (elem.is_a?(String) ? elem.upcase : elem)
           end
         when String
-          # nil means no change was made to the String
-          original.upcase! || original
+          original.upcase
         else
           @logger.debug? && @logger.debug("Can't uppercase something that isn't a string", :field => field, :value => original)
           original
@@ -445,7 +444,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           (elem.is_a?(String) ? elem.downcase : elem)
         end
       when String
-        original.downcase! || original
+        original.downcase
       else
         @logger.debug? && @logger.debug("Can't lowercase something that isn't a string", :field => field, :value => original)
         original
@@ -465,7 +464,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
           (elem.is_a?(String) ? elem.capitalize : elem)
         end
       when String
-        original.capitalize! || original
+        original.capitalize
       else
         @logger.debug? && @logger.debug("Can't capitalize something that isn't a string", :field => field, :value => original)
         original

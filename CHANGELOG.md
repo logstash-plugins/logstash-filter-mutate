@@ -1,3 +1,10 @@
+## 3.5.1
+ - Fix: removed a minor optimization in case-conversion helpers that could result in a race condition in very rare and specific situations [#151](https://github.com/logstash-plugins/logstash-filter-mutate/pull/151)
+
+## 3.5.0
+ - Fix: eliminated possible pipeline crashes; when a failure occurs during the application of this mutate filter, the rest of
+the operations are now aborted and a configurable tag is added to the event [#136](https://github.com/logstash-plugins/logstash-filter-mutate/pull/136)
+
 ## 3.4.0
  - Added ability to directly convert from integer and float to boolean [#127](https://github.com/logstash-plugins/logstash-filter-mutate/pull/127)
 
