@@ -56,7 +56,7 @@ filter {
     }
 
     mutate {    
-        rename => ["shortHostname", "hostname" ]
+        rename => {"shortHostname" => "hostname"}
     }
 }
 -----
