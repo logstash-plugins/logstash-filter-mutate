@@ -1,3 +1,6 @@
+## 3.5.2
+ - Fix: ensure that when an error occurs during registration, we use the correct i18n key to propagate the error message in a useful manner [#154](https://github.com/logstash-plugins/logstash-filter-mutate/pull/154)
+
 ## 3.5.1
  - Fix: removed a minor optimization in case-conversion helpers that could result in a race condition in very rare and specific situations [#151](https://github.com/logstash-plugins/logstash-filter-mutate/pull/151)
 

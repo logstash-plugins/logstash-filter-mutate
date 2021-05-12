@@ -321,7 +321,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        expect {subject}.to raise_error LogStash::ConfigurationError
+        expect {subject}.to raise_error(LogStash::ConfigurationError, /Invalid conversion type/)
       end
     end
     describe "invalid gsub triad should raise a configuration error" do
@@ -334,7 +334,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        expect {subject}.to raise_error LogStash::ConfigurationError
+        expect {subject}.to raise_error(LogStash::ConfigurationError, /Invalid gsub configuration/)
       end
     end
   end

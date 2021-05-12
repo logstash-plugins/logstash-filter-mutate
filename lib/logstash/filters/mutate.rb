@@ -220,7 +220,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     @convert.nil? or @convert.each do |field, type|
       if !valid_conversions.include?(type)
         raise LogStash::ConfigurationError, I18n.t(
-          "logstash.agent.configuration.invalid_plugin_register",
+          "logstash.runner.configuration.invalid_plugin_register",
           :plugin => "filter",
           :type => "mutate",
           :error => "Invalid conversion type '#{type}', expected one of '#{valid_conversions.join(',')}'"
@@ -232,7 +232,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     @gsub.nil? or @gsub.each_slice(3) do |field, needle, replacement|
       if [field, needle, replacement].any? {|n| n.nil?}
         raise LogStash::ConfigurationError, I18n.t(
-          "logstash.agent.configuration.invalid_plugin_register",
+          "logstash.runner.configuration.invalid_plugin_register",
           :plugin => "filter",
           :type => "mutate",
           :error => "Invalid gsub configuration #{[field, needle, replacement]}. gsub requires 3 non-nil elements per config entry"
