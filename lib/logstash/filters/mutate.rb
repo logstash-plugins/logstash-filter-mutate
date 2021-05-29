@@ -95,7 +95,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # This configuration takes an array consisting of 3 elements per
   # field/substitution.
   #
-  # Be aware of escaping any backslash in the config file.
+  # Be aware of escaping any literal backslash in the config file.
+  # However, use a single backslash for predefined character classes like \d
+  # as well as for backreferences to capture groups like \1.
   #
   # Example:
   # [source,ruby]
@@ -104,6 +106,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   #         gsub => [
   #           # replace all forward slashes with underscore
   #           "fieldname", "/", "_",
+  #           # left-pad with a zero if it is a single digit
+  #           "numstr", "^(\d)$", "0\1",
   #           # replace backslashes, question marks, hashes, and minuses
   #           # with a dot "."
   #           "fieldname2", "[\\?#-]", "."
