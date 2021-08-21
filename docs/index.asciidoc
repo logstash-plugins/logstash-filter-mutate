@@ -265,6 +265,13 @@ Example:
 
 Rename one or more fields.
 
+If the destination field already exists, its value is replaced.
+
+If one of the source fields doesn't exist, no action is performed for that field.
+(This is not considered an error; the `tag_on_failure` tag is not applied.)
+
+When renaming multiple fields, the order of operations is not guaranteed.
+
 Example:
 [source,ruby]
     filter {
