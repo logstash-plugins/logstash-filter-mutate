@@ -1,3 +1,6 @@
+## 3.5.3
+ - DOC: Expand description and behaviors for `rename` option [#156](https://github.com/logstash-plugins/logstash-filter-mutate/pull/156)
+
 ## 3.5.2
  - Fix: ensure that when an error occurs during registration, we use the correct i18n key to propagate the error message in a useful manner [#154](https://github.com/logstash-plugins/logstash-filter-mutate/pull/154)
 
