@@ -101,6 +101,16 @@ Convert a field's value to a different type, like turning a string to an
 integer. If the field value is an array, all members will be converted.
 If the field is a hash no action will be taken.
 
+.Conversion insights
+[NOTE]
+================================================================================
+The values are converted to Ruby data types.
+Be aware using `float` and `float_eu` converts the number in Ruby `Float`, 
+which is double-precision floating point representation.
+In order to not lose precision due to the conversion, you should
+us `double` in the Elasticsearch mappings.
+================================================================================
+
 Valid conversion targets, and their expected behaviour with different inputs are:
 
  * `integer`:
