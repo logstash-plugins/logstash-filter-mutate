@@ -1,3 +1,44 @@
+## 3.5.3
+ - DOC: Expand description and behaviors for `rename` option [#156](https://github.com/logstash-plugins/logstash-filter-mutate/pull/156)
+
+## 3.5.2
+ - Fix: ensure that when an error occurs during registration, we use the correct i18n key to propagate the error message in a useful manner [#154](https://github.com/logstash-plugins/logstash-filter-mutate/pull/154)
+
+## 3.5.1
+ - Fix: removed a minor optimization in case-conversion helpers that could result in a race condition in very rare and specific situations [#151](https://github.com/logstash-plugins/logstash-filter-mutate/pull/151)
+
+## 3.5.0
+ - Fix: eliminated possible pipeline crashes; when a failure occurs during the application of this mutate filter, the rest of
+the operations are now aborted and a configurable tag is added to the event [#136](https://github.com/logstash-plugins/logstash-filter-mutate/pull/136)
+
+## 3.4.0
+ - Added ability to directly convert from integer and float to boolean [#127](https://github.com/logstash-plugins/logstash-filter-mutate/pull/127)
+
+## 3.3.4
+ - Changed documentation to clarify execution order and to provide workaround 
+ [#128](https://github.com/logstash-plugins/logstash-filter-mutate/pull/128)
+
+## 3.3.3
+ - Changed documentation to clarify use of `replace` config option [#125](https://github.com/logstash-plugins/logstash-filter-mutate/pull/125)
+
+## 3.3.2
+ - Fix: when converting to `float` and `float_eu`, explicitly support same range of inputs as their integer counterparts; eliminates a regression introduced in 3.3.1 in which support for non-string inputs was inadvertently removed.
+
+## 3.3.1
+ - Fix: Number strings using a **decimal comma** (e.g. 1,23), added convert support to specify integer_eu and float_eu.
+
+## 3.3.0
+ - feature: Added capitalize feature.
+
+## 3.2.0
+  - Support boolean to integer conversion #107
+
+## 3.1.7
+  - Update gemspec summary
+
+## 3.1.6
+  - Fix some documentation issues
+
 ## 3.1.4
  - feature: Allow to copy fields.
 

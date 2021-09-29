@@ -1,6 +1,6 @@
 # Logstash Plugin
 
-[![Travis Build Status](https://travis-ci.org/logstash-plugins/logstash-filter-mutate.svg)](https://travis-ci.org/logstash-plugins/logstash-filter-mutate)
+[![Travis Build Status](https://travis-ci.com/logstash-plugins/logstash-filter-mutate.svg)](https://travis-ci.com/logstash-plugins/logstash-filter-mutate)
 
 This is a plugin for [Logstash](https://github.com/elastic/logstash).
 

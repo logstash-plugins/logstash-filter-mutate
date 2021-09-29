@@ -23,6 +23,56 @@ module LogStash::Environment
   end
 end
 
+logstash_version = Gem::Version.create(LOGSTASH_CORE_VERSION)
+
+if (Gem::Requirement.create('~> 7.0').satisfied_by?(logstash_version) ||
+   (Gem::Requirement.create('~> 6.4').satisfied_by?(logstash_version) && LogStash::SETTINGS.get('config.field_reference.parser') == 'STRICT'))
+  describe LogStash::Filters::Mutate do
+    let(:config) { Hash.new }
+    subject(:mutate_filter) { LogStash::Filters::Mutate.new(config) }
+
+    before(:each) { mutate_filter.register }
+
+    let(:event) { LogStash::Event.new(attrs) }
+
+    context 'when operation would cause an error' do
+
+      let(:invalid_field_name) { "[[][[[[]message" }
+      let(:config) do
+        super().merge("add_field" => {invalid_field_name => "nope"})
+      end
+
+      shared_examples('catch and tag error') do
+        let(:expected_tag) { '_mutate_error' }
+
+        let(:event) { LogStash::Event.new({"message" => "foo"})}
+
+        context 'when the event is filtered' do
+          before(:each) { mutate_filter.filter(event) }
+          it 'does not raise an exception' do
+            # noop
+          end
+
+          it 'tags the event with the expected tag' do
+            expect(event).to include('tags')
+            expect(event.get('tags')).to include(expected_tag)
+          end
+        end
+      end
+
+      context 'when `tag_on_failure` is not provided' do
+        include_examples 'catch and tag error'
+      end
+
+      context 'when `tag_on_failure` is provided' do
+        include_examples 'catch and tag error' do
+          let(:expected_tag) { 'my_custom_tag' }
+          let(:config) { super().merge('tag_on_failure' => expected_tag) }
+        end
+      end
+    end
+  end
+end
 
 describe LogStash::Filters::Mutate do
 
@@ -54,6 +104,24 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  context "when doing capitalize of an array" do
+
+    let(:config) do
+      { "capitalize" => ["array_of"] }
+    end
+
+    let(:attrs) { { "array_of" => ["ab", 2, "CDE"] } }
+
+    it "should capitalize not raise an error" do
+      expect { subject.filter(event) }.not_to raise_error
+    end
+
+    it "should convert only string elements" do
+      subject.filter(event)
+      expect(event.get("array_of")).to eq(["Ab", 2, "Cde"])
+    end
+  end
+
   context "when doing lowercase of an array" do
 
     let(:config) do
@@ -72,7 +140,7 @@ describe LogStash::Filters::Mutate do
     end
   end
 
-  %w(lowercase uppercase).each do |operation|
+  %w(lowercase uppercase capitalize).each do |operation|
     context "executing #{operation} a non-existant field" do
       let(:attrs) { }
 
@@ -83,6 +151,21 @@ describe LogStash::Filters::Mutate do
       it "should not create that field" do
         subject.filter(event)
         expect(event).not_to include("fake_field")
+      end
+    end
+    context "avoid mutating contents of field, as they may be shared" do
+      let(:original_value) { "oRiGiNaL vAlUe".freeze }
+      let(:shared_value) { original_value.dup }
+      let(:attrs) { {"field" => shared_value } }
+      let(:config) do
+        {
+          operation => "field"
+        }
+      end
+
+      it 'should not mutate the value' do
+        subject.filter(event)
+        expect(shared_value).to eq(original_value)
       end
     end
   end
@@ -238,7 +321,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        expect {subject}.to raise_error LogStash::ConfigurationError
+        expect {subject}.to raise_error(LogStash::ConfigurationError, /Invalid conversion type/)
       end
     end
     describe "invalid gsub triad should raise a configuration error" do
@@ -251,7 +334,7 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       sample "not_really_important" do
-        expect {subject}.to raise_error LogStash::ConfigurationError
+        expect {subject}.to raise_error(LogStash::ConfigurationError, /Invalid gsub configuration/)
       end
     end
   end
@@ -262,12 +345,14 @@ describe LogStash::Filters::Mutate do
         mutate {
           lowercase => ["lowerme","Lowerme", "lowerMe"]
           uppercase => ["upperme", "Upperme", "upperMe"]
+          capitalize => ["capitalizeme", "Capitalizeme", "capitalizeMe"]
           convert => [ "intme", "integer", "floatme", "float" ]
           rename => [ "rename1", "rename2" ]
           replace => [ "replaceme", "hello world" ]
           replace => [ "newfield", "newnew" ]
           update => [ "nosuchfield", "weee" ]
           update => [ "updateme", "updated" ]
+
         }
       }
     CONFIG
@@ -275,10 +360,13 @@ describe LogStash::Filters::Mutate do
     event = {
       "lowerme" => "example",
       "upperme" => "EXAMPLE",
+      "capitalizeme" => "Example",
       "Lowerme" => "ExAmPlE",
       "Upperme" => "ExAmPlE",
+      "Capitalizeme" => "ExAmPlE",
       "lowerMe" => [ "ExAmPlE", "example" ],
       "upperMe" => [ "ExAmPlE", "EXAMPLE" ],
+      "capitalizeMe" => [ "ExAmPlE", "Example" ],
       "intme" => [ "1234", "7890.4", "7.9" ],
       "floatme" => [ "1234.455" ],
       "rename1" => [ "hello world" ],
@@ -289,10 +377,13 @@ describe LogStash::Filters::Mutate do
     sample event do
       expect(subject.get("lowerme")).to eq 'example'
       expect(subject.get("upperme")).to eq 'EXAMPLE'
+      expect(subject.get("capitalizeme")).to eq 'Example'
       expect(subject.get("Lowerme")).to eq 'example'
       expect(subject.get("Upperme")).to eq 'EXAMPLE'
+      expect(subject.get("Capitalizeme")).to eq 'Example'
       expect(subject.get("lowerMe")).to eq ['example', 'example']
       expect(subject.get("upperMe")).to eq ['EXAMPLE', 'EXAMPLE']
+      expect(subject.get("capitalizeMe")).to eq ['Example', 'Example']
       expect(subject.get("intme") ).to eq [1234, 7890, 7]
       expect(subject.get("floatme")).to eq [1234.455]
       expect(subject).not_to include("rename1")
@@ -311,6 +402,7 @@ describe LogStash::Filters::Mutate do
         mutate {
           lowercase => ["lowerme"]
           uppercase => ["upperme"]
+          capitalize => ["capitalizeme"]
         }
       }
     CONFIG
@@ -318,12 +410,13 @@ describe LogStash::Filters::Mutate do
     event = {
       "lowerme" => [ "АБВГД\0MMM", "こにちわ", "XyZółć", "NÎcË GÛŸ"],
       "upperme" => [ "аБвгд\0mmm", "こにちわ", "xYzółć", "Nîcë gûÿ"],
+      "capitalizeme" => ["АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"],
     }
 
     sample event do
-      # ATM, only the ASCII characters will case change
-      expect(subject.get("lowerme")).to eq [ "АБВГД\0mmm", "こにちわ", "xyzółć", "nÎcË gÛŸ"]
-      expect(subject.get("upperme")).to eq [ "аБвгд\0MMM", "こにちわ", "XYZółć", "NîCë Gûÿ"]
+      expect(subject.get("lowerme")).to eq [ "абвгд\0mmm", "こにちわ", "xyzółć", "nîcë gûÿ"]
+      expect(subject.get("upperme")).to eq [ "АБВГД\0MMM", "こにちわ", "XYZÓŁĆ", "NÎCË GÛŸ"]
+      expect(subject.get("capitalizeme")).to eq [ "Абвгд\0mmm", "こにちわ", "Xyzółć", "Nîcë gûÿ"]
     end
   end
 
@@ -344,45 +437,224 @@ describe LogStash::Filters::Mutate do
     config <<-CONFIG
       filter {
         mutate {
-          convert => { "true_field"  => "boolean" }
-          convert => { "false_field" => "boolean" }
-          convert => { "true_upper"  => "boolean" }
-          convert => { "false_upper" => "boolean" }
-          convert => { "true_one"    => "boolean" }
-          convert => { "false_zero"  => "boolean" }
-          convert => { "true_yes"    => "boolean" }
-          convert => { "false_no"    => "boolean" }
-          convert => { "true_y"      => "boolean" }
-          convert => { "false_n"     => "boolean" }
-          convert => { "wrong_field" => "boolean" }
+          convert => { "true_field"         => "boolean" }
+          convert => { "false_field"        => "boolean" }
+          convert => { "true_upper"         => "boolean" }
+          convert => { "false_upper"        => "boolean" }
+          convert => { "true_one"           => "boolean" }
+          convert => { "false_zero"         => "boolean" }
+          convert => { "true_yes"           => "boolean" }
+          convert => { "false_no"           => "boolean" }
+          convert => { "true_y"             => "boolean" }
+          convert => { "false_n"            => "boolean" }
+          convert => { "wrong_field"        => "boolean" }
+          convert => { "integer_false"      => "boolean" }
+          convert => { "integer_true"       => "boolean" }
+          convert => { "integer_negative"   => "boolean" }
+          convert => { "integer_wrong"      => "boolean" }
+          convert => { "float_true"         => "boolean" }
+          convert => { "float_false"        => "boolean" }
+          convert => { "float_negative"     => "boolean" }
+          convert => { "float_wrong"        => "boolean" }
+          convert => { "float_wrong2"       => "boolean" }
+          convert => { "array"              => "boolean" }
+          convert => { "hash"               => "boolean" }
         }
       }
     CONFIG
     event = {
-      "true_field"  => "true",
-      "false_field" => "false",
-      "true_upper"  => "True",
-      "false_upper" => "False",
-      "true_one"    => "1",
-      "false_zero"  => "0",
-      "true_yes"    => "yes",
-      "false_no"    => "no",
-      "true_y"      => "Y",
-      "false_n"     => "N",
-      "wrong_field" => "none of the above"
+      "true_field"      => "true",
+      "false_field"     => "false",
+      "true_upper"      => "True",
+      "false_upper"     => "False",
+      "true_one"        => "1",
+      "false_zero"      => "0",
+      "true_yes"        => "yes",
+      "false_no"        => "no",
+      "true_y"          => "Y",
+      "false_n"         => "N",
+      "wrong_field"     => "none of the above",
+      "integer_false"   => 0,
+      "integer_true"    => 1,
+      "integer_negative"=> -1,
+      "integer_wrong"   => 2,
+      "float_true"      => 1.0,
+      "float_false"     => 0.0,
+      "float_negative"  => -1.0,
+      "float_wrong"     => 1.0123,
+      "float_wrong2"    => 0.01,
+      "array"           => [ "1", "0", 0,1,2],
+      "hash"            => { "a" => 0 }
     }
     sample event do
-      expect(subject.get("true_field") ).to eq(true)
-      expect(subject.get("false_field")).to eq(false)
-      expect(subject.get("true_upper") ).to eq(true)
-      expect(subject.get("false_upper")).to eq(false)
-      expect(subject.get("true_one")   ).to eq(true)
-      expect(subject.get("false_zero") ).to eq(false)
-      expect(subject.get("true_yes")   ).to eq(true)
-      expect(subject.get("false_no")   ).to eq(false)
-      expect(subject.get("true_y")     ).to eq(true)
-      expect(subject.get("false_n")    ).to eq(false)
-      expect(subject.get("wrong_field")).to eq("none of the above")
+      expect(subject.get("true_field")      ).to eq(true)
+      expect(subject.get("false_field")     ).to eq(false)
+      expect(subject.get("true_upper")      ).to eq(true)
+      expect(subject.get("false_upper")     ).to eq(false)
+      expect(subject.get("true_one")        ).to eq(true)
+      expect(subject.get("false_zero")      ).to eq(false)
+      expect(subject.get("true_yes")        ).to eq(true)
+      expect(subject.get("false_no")        ).to eq(false)
+      expect(subject.get("true_y")          ).to eq(true)
+      expect(subject.get("false_n")         ).to eq(false)
+      expect(subject.get("wrong_field")     ).to eq("none of the above")
+      expect(subject.get("integer_false")   ).to eq(false)
+      expect(subject.get("integer_true")    ).to eq(true)
+      expect(subject.get("integer_negative")).to eq(-1)
+      expect(subject.get("integer_wrong")   ).to eq(2)
+      expect(subject.get("float_true")      ).to eq(true)
+      expect(subject.get("float_false")     ).to eq(false)
+      expect(subject.get("float_negative")  ).to eq(-1.0)
+      expect(subject.get("float_wrong")     ).to eq(1.0123)
+      expect(subject.get("float_wrong2")    ).to eq(0.01)
+      expect(subject.get("array")           ).to eq([true, false, false, true,2])
+      expect(subject.get("hash")            ).to eq({ "a" => 0 })
+    end
+  end
+
+  describe "convert to float" do
+
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "field" => "float"
+          }
+        }
+      }
+    CONFIG
+
+    context 'when field is a string with no separator and dot decimal' do
+      sample({'field' => '3141.5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string with a comma separator and dot decimal' do
+      sample({'field' => '3,141.5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string comma separator and no decimal' do
+      sample({'field' => '3,141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a string no separator and no decimal' do
+      sample({'field' => '3141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a float' do
+      sample({'field' => 3.1415926}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3.1415926)
+      end
+    end
+
+    context 'when field is an integer' do
+      sample({'field' => 3}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3)
+      end
+    end
+
+    context 'when field is the true value' do
+      sample('field' => true) do
+        expect(subject.get('field')).to eq(1.0)
+      end
+    end
+
+    context 'when field is the false value' do
+      sample('field' => false) do
+        expect(subject.get('field')).to eq(0.0)
+      end
+    end
+
+    context 'when field is nil' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+
+    context 'when field is not set' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+  end
+
+
+  describe "convert to float_eu" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "field" => "float_eu"
+          }
+        }
+      }
+    CONFIG
+
+    context 'when field is a string with no separator and comma decimal' do
+      sample({'field' => '3141,5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string with a dot separator and comma decimal' do
+      sample({'field' => '3.141,5926'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.5926)
+      end
+    end
+
+    context 'when field is a string dot separator and no decimal' do
+      sample({'field' => '3.141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a string no separator and no decimal' do
+      sample({'field' => '3141'}) do
+        expect(subject.get('field')).to be_within(0.0001).of(3141.0)
+      end
+    end
+
+    context 'when field is a float' do
+      sample({'field' => 3.1415926}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3.1415926)
+      end
+    end
+
+    context 'when field is an integer' do
+      sample({'field' => 3}) do
+        expect(subject.get('field')).to be_within(0.000001).of(3)
+      end
+    end
+
+    context 'when field is the true value' do
+      sample('field' => true) do
+        expect(subject.get('field')).to eq(1.0)
+      end
+    end
+
+    context 'when field is the false value' do
+      sample('field' => false) do
+        expect(subject.get('field')).to eq(0.0)
+      end
+    end
+
+    context 'when field is nil' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
+    end
+
+    context 'when field is not set' do
+      sample('field' => nil) do
+        expect(subject.get('field')).to be_nil
+      end
     end
   end
 
@@ -487,8 +759,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("field_one")
-      insist { subject }.include?("destination")
+      expect(subject).to_not include("field_one")
+      expect(subject).to include("destination")
     end
   end
 
@@ -502,8 +774,8 @@ describe LogStash::Filters::Mutate do
     CONFIG
 
     sample("field_one" => "value", "x" => "one") do
-      reject { subject }.include?("origin")
-      insist { subject }.include?("field_one")
+      expect(subject).to_not include("origin")
+      expect(subject).to include("field_one")
     end
   end
 
@@ -518,9 +790,9 @@ describe LogStash::Filters::Mutate do
 
     sample({ "foo" => { "bar" => "1000" } }) do
       expect(subject.get("[foo][bar]")).to eq 1000
-      expect(subject.get("[foo][bar]")).to be_a(Fixnum)
+      expect(subject.get("[foo][bar]")).to be_a(Integer)
     end
-  end
+ end
 
   describe "convert should work within arrays" do
     config <<-CONFIG
@@ -533,7 +805,132 @@ describe LogStash::Filters::Mutate do
 
     sample({ "foo" => ["100", "200"] }) do
       expect(subject.get("[foo][0]")).to eq 100
-      expect(subject.get("[foo][0]")).to be_a(Fixnum)
+      expect(subject.get("[foo][0]")).to be_a(Integer)
+    end
+  end
+
+  describe "convert booleans to integer" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "[foo][0]" => "integer"
+            "[foo][1]" => "integer"
+            "[foo][2]" => "integer"
+            "[foo][3]" => "integer"
+            "[foo][4]" => "integer"
+          }
+        }
+      }
+    CONFIG
+
+    sample({ "foo" => [false, true, "0", "1", "2"] }) do
+      expect(subject.get("[foo][0]")).to eq 0
+      expect(subject.get("[foo][0]")).to be_a(Integer)
+      expect(subject.get("[foo][1]")).to eq 1
+      expect(subject.get("[foo][1]")).to be_a(Integer)
+      expect(subject.get("[foo][2]")).to eq 0
+      expect(subject.get("[foo][2]")).to be_a(Integer)
+      expect(subject.get("[foo][3]")).to eq 1
+      expect(subject.get("[foo][3]")).to be_a(Integer)
+      expect(subject.get("[foo][4]")).to eq 2
+      expect(subject.get("[foo][4]")).to be_a(Integer)
+    end
+  end
+
+  describe "convert various US/UK strings" do
+    describe "to integer" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "integer"
+              "[foo][1]" => "integer"
+              "[foo][2]" => "integer"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1,000", "1,234,567.8", "123.4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000
+        expect(subject.get("[foo][0]")).to be_a(Integer)
+        expect(subject.get("[foo][1]")).to eq 1234567
+        expect(subject.get("[foo][1]")).to be_a(Integer)
+        expect(subject.get("[foo][2]")).to eq 123
+        expect(subject.get("[foo][2]")).to be_a(Integer)
+      end
+    end
+
+    describe "to float" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "float"
+              "[foo][1]" => "float"
+              "[foo][2]" => "float"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1,000", "1,234,567.8", "123.4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000.0
+        expect(subject.get("[foo][0]")).to be_a(Float)
+        expect(subject.get("[foo][1]")).to eq 1234567.8
+        expect(subject.get("[foo][1]")).to be_a(Float)
+        expect(subject.get("[foo][2]")).to eq 123.4
+        expect(subject.get("[foo][2]")).to be_a(Float)
+      end
+    end
+  end
+
+  describe "convert various EU style strings" do
+    describe "to integer" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "integer_eu"
+              "[foo][1]" => "integer_eu"
+              "[foo][2]" => "integer_eu"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1.000", "1.234.567,8", "123,4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000
+        expect(subject.get("[foo][0]")).to be_a(Integer)
+        expect(subject.get("[foo][1]")).to eq 1234567
+        expect(subject.get("[foo][1]")).to be_a(Integer)
+        expect(subject.get("[foo][2]")).to eq 123
+        expect(subject.get("[foo][2]")).to be_a(Integer)
+      end
+    end
+
+    describe "to float" do
+      config <<-CONFIG
+        filter {
+          mutate {
+            convert => {
+              "[foo][0]" => "float_eu"
+              "[foo][1]" => "float_eu"
+              "[foo][2]" => "float_eu"
+            }
+          }
+        }
+      CONFIG
+
+      sample({ "foo" => ["1.000", "1.234.567,8", "123,4"] }) do
+        expect(subject.get("[foo][0]")).to eq 1000.0
+        expect(subject.get("[foo][0]")).to be_a(Float)
+        expect(subject.get("[foo][1]")).to eq 1234567.8
+        expect(subject.get("[foo][1]")).to be_a(Float)
+        expect(subject.get("[foo][2]")).to eq 123.4
+        expect(subject.get("[foo][2]")).to be_a(Float)
+      end
     end
   end
 
@@ -680,6 +1077,28 @@ describe LogStash::Filters::Mutate do
     sample("foo" => "bar", "list" => "baz") do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq "bar"
+    end
+  end
+
+  describe "coerce arrays fields with default values when null" do
+    config '
+      filter {
+        mutate {
+          coerce => {
+            "field1" => "Hello"
+            "field2" => "Bye"
+            "field3" => 5
+            "field4" => false
+          }
+        }
+      }'
+
+
+    sample("field1" => nil, "field2" => nil, "field3" => nil, "field4" => true) do
+      expect(subject.get("field1")).to eq("Hello")
+      expect(subject.get("field2")).to eq("Bye")
+      expect(subject.get("field3")).to eq("5")
+      expect(subject.get("field4")).to eq(true)
     end
   end
 
