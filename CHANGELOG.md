@@ -1,3 +1,7 @@
+## 3.5.4
+ - DOC: In 'replace' documentation, mention 'add' behavior [#155](https://github.com/logstash-plugins/logstash-filter-mutate/pull/155)
+ - DOC: Add warning about #27 [#101](https://github.com/logstash-plugins/logstash-filter-mutate/pull/101)
+
 ## 3.5.3
  - DOC: Expand description and behaviors for `rename` option [#156](https://github.com/logstash-plugins/logstash-filter-mutate/pull/156)
 
