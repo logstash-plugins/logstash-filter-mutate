@@ -1,3 +1,6 @@
+## 3.5.5
+ - Fix: removed code and documentation for already removed 'remove' option. [#161](https://github.com/logstash-plugins/logstash-filter-mutate/pull/161)
+
 ## 3.5.4
  - DOC: In 'replace' documentation, mention 'add' behavior [#155](https://github.com/logstash-plugins/logstash-filter-mutate/pull/155)
  - DOC: Add warning about #27 [#101](https://github.com/logstash-plugins/logstash-filter-mutate/pull/101)
