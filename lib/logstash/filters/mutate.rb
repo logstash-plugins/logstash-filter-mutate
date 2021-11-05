@@ -3,7 +3,7 @@ require "logstash/filters/base"
 require "logstash/namespace"
 
 # The mutate filter allows you to perform general mutations on fields. You
-# can rename, remove, replace, and modify fields in your events.
+# can rename, replace, and modify fields in your events.
 class LogStash::Filters::Mutate < LogStash::Filters::Base
   config_name "mutate"
 
@@ -258,7 +258,6 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     capitalize(event) if @capitalize
     lowercase(event) if @lowercase
     strip(event) if @strip
-    remove(event) if @remove
     split(event) if @split
     join(event) if @join
     merge(event) if @merge
