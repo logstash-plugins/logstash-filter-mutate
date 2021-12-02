@@ -1,12 +1,15 @@
+## 3.5.6
+ - [DOC] Added info on maintaining precision between Ruby float and Elasticsearch float [#158](https://github.com/logstash-plugins/logstash-filter-mutate/pull/158)
+
 ## 3.5.5
  - Fix: removed code and documentation for already removed 'remove' option. [#161](https://github.com/logstash-plugins/logstash-filter-mutate/pull/161)
 
 ## 3.5.4
- - DOC: In 'replace' documentation, mention 'add' behavior [#155](https://github.com/logstash-plugins/logstash-filter-mutate/pull/155)
- - DOC: Add warning about #27 [#101](https://github.com/logstash-plugins/logstash-filter-mutate/pull/101)
+ - [DOC] In 'replace' documentation, mention 'add' behavior [#155](https://github.com/logstash-plugins/logstash-filter-mutate/pull/155)
+ - [DOC] Note that each mutate must be in its own code block as noted in issue [#27](https://github.com/logstash-plugins/logstash-filter-mutate/issues/27). Doc fix [#101](https://github.com/logstash-plugins/logstash-filter-mutate/pull/101)
 
 ## 3.5.3
- - DOC: Expand description and behaviors for `rename` option [#156](https://github.com/logstash-plugins/logstash-filter-mutate/pull/156)
+ - [DOC] Expand description and behaviors for `rename` option [#156](https://github.com/logstash-plugins/logstash-filter-mutate/pull/156)
 
 ## 3.5.2
  - Fix: ensure that when an error occurs during registration, we use the correct i18n key to propagate the error message in a useful manner [#154](https://github.com/logstash-plugins/logstash-filter-mutate/pull/154)
@@ -22,7 +25,7 @@ the operations are now aborted and a configurable tag is added to the event [#13
  - Added ability to directly convert from integer and float to boolean [#127](https://github.com/logstash-plugins/logstash-filter-mutate/pull/127)
 
 ## 3.3.4
- - Changed documentation to clarify execution order and to provide workaround 
+ - [DOC] Changed documentation to clarify execution order and to provide workaround 
  [#128](https://github.com/logstash-plugins/logstash-filter-mutate/pull/128)
 
 ## 3.3.3
