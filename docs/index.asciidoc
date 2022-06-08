@@ -200,7 +200,8 @@ Example:
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
 
-Join an array with a separator character. Does nothing on non-array fields.
+Join an array with a separator character or string.
+Does nothing on non-array fields.
 
 Example:
 [source,ruby]
@@ -312,8 +313,8 @@ Example:
   * Value type is <<hash,hash>>
   * There is no default value for this setting.
 
-Split a field to an array using a separator character. Only works on string
-fields.
+Split a field to an array using a separator character or string.
+Only works on string fields.
 
 Example:
 [source,ruby]
