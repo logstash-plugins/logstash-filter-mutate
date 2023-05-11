@@ -1,3 +1,6 @@
+## 3.5.7
+  - Clarify that `split` and `join` also support strings [#164](https://github.com/logstash-plugins/logstash-filter-mutate/pull/164)
+
 ## 3.5.6
  - [DOC] Added info on maintaining precision between Ruby float and Elasticsearch float [#158](https://github.com/logstash-plugins/logstash-filter-mutate/pull/158)
 
