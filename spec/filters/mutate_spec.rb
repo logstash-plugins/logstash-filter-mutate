@@ -428,7 +428,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns" => 1234) do
+    sample({"unicorns" => 1234}) do
       expect(subject.get("unicorns")).to eq "1234"
     end
   end
@@ -561,25 +561,25 @@ describe LogStash::Filters::Mutate do
     end
 
     context 'when field is the true value' do
-      sample('field' => true) do
+      sample({'field' => true}) do
         expect(subject.get('field')).to eq(1.0)
       end
     end
 
     context 'when field is the false value' do
-      sample('field' => false) do
+      sample({'field' => false}) do
         expect(subject.get('field')).to eq(0.0)
       end
     end
 
     context 'when field is nil' do
-      sample('field' => nil) do
+      sample({'field' => nil}) do
         expect(subject.get('field')).to be_nil
       end
     end
 
     context 'when field is not set' do
-      sample('field' => nil) do
+      sample({'field' => nil}) do
         expect(subject.get('field')).to be_nil
       end
     end
@@ -634,25 +634,25 @@ describe LogStash::Filters::Mutate do
     end
 
     context 'when field is the true value' do
-      sample('field' => true) do
+      sample({'field' => true}) do
         expect(subject.get('field')).to eq(1.0)
       end
     end
 
     context 'when field is the false value' do
-      sample('field' => false) do
+      sample({'field' => false}) do
         expect(subject.get('field')).to eq(0.0)
       end
     end
 
     context 'when field is nil' do
-      sample('field' => nil) do
+      sample({'field' => nil}) do
         expect(subject.get('field')).to be_nil
       end
     end
 
     context 'when field is not set' do
-      sample('field' => nil) do
+      sample({'field' => nil}) do
         expect(subject.get('field')).to be_nil
       end
     end
@@ -666,7 +666,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns" => "Magnificient, but extinct, animals") do
+    sample({"unicorns" => "Magnificient, but extinct, animals"}) do
       expect(subject.get("unicorns")).to eq "Magnificient, and common, animals"
     end
   end
@@ -679,8 +679,8 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns" => [
-      "Magnificient extinct animals", "Other extinct ideas" ]
+    sample({"unicorns" => [
+      "Magnificient extinct animals", "Other extinct ideas" ]}
     ) do
       expect(subject.get("unicorns")).to eq [
         "Magnificient common animals",
@@ -698,7 +698,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("colors" => "One red car", "shapes" => "Four red squares") do
+    sample({"colors" => "One red car", "shapes" => "Four red squares"}) do
       expect(subject.get("colors")).to eq "One blue car"
       expect(subject.get("shapes")).to eq "Four red circles"
     end
@@ -712,7 +712,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("colors" => "red3") do
+    sample({"colors" => "red3"}) do
       expect(subject.get("colors")).to eq "redblue"
     end
   end
@@ -758,7 +758,7 @@ describe LogStash::Filters::Mutate do
       }
     CONFIG
 
-    sample("field_one" => "value", "x" => "one") do
+    sample({"field_one" => "value", "x" => "one"}) do
       expect(subject).to_not include("field_one")
       expect(subject).to include("destination")
     end
@@ -773,7 +773,7 @@ describe LogStash::Filters::Mutate do
       }
     CONFIG
 
-    sample("field_one" => "value", "x" => "one") do
+    sample({"field_one" => "value", "x" => "one"}) do
       expect(subject).to_not include("origin")
       expect(subject).to include("field_one")
     end
@@ -943,7 +943,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns" => "Unicorns of type blue are common", "unicorn_type" => "blue") do
+    sample({"unicorns" => "Unicorns of type blue are common", "unicorn_type" => "blue"}) do
       expect(subject.get("unicorns")).to eq "Unicorns green are common"
     end
   end
@@ -957,7 +957,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns2" => "Unicorns of type blue are common", "unicorn_color" => "blue") do
+    sample({"unicorns2" => "Unicorns of type blue are common", "unicorn_color" => "blue"}) do
       expect(subject.get("unicorns2")).to eq "Unicorns blue and green are common"
     end
   end
@@ -971,9 +971,9 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("unicorns_array" => [
+    sample({"unicorns_array" => [
         "Unicorns of type blue are found in Alaska", "Unicorns of type blue are extinct" ],
-           "color" => "blue"
+           "color" => "blue" }
     ) do
       expect(subject.get("unicorns_array")).to eq [
           "Unicorns blue and green are found in Alaska",
@@ -990,7 +990,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => "bar") do
+    sample({"foo" => "bar"}) do
       expect(subject.get("list")).to eq ["bar"]
       expect(subject.get("foo")).to eq "bar"
     end
@@ -1004,7 +1004,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => "bar", "list" => []) do
+    sample({"foo" => "bar", "list" => []}) do
       expect(subject.get("list")).to eq ["bar"]
       expect(subject.get("foo")).to eq "bar"
     end
@@ -1018,7 +1018,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => "bar", "list" => ["baz"]) do
+    sample({"foo" => "bar", "list" => ["baz"]}) do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq "bar"
     end
@@ -1032,7 +1032,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => ["bar"], "list" => ["baz"]) do
+    sample({"foo" => ["bar"], "list" => ["baz"]}) do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq ["bar"]
     end
@@ -1046,7 +1046,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => [], "list" => ["baz"]) do
+    sample({"foo" => [], "list" => ["baz"]}) do
       expect(subject.get("list")).to eq ["baz"]
       expect(subject.get("foo")).to eq []
     end
@@ -1060,7 +1060,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => ["bar"], "list" => "baz") do
+    sample({"foo" => ["bar"], "list" => "baz"}) do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq ["bar"]
     end
@@ -1074,7 +1074,7 @@ describe LogStash::Filters::Mutate do
         }
       }'
 
-    sample("foo" => "bar", "list" => "baz") do
+    sample({"foo" => "bar", "list" => "baz"}) do
       expect(subject.get("list")).to eq ["baz", "bar"]
       expect(subject.get("foo")).to eq "bar"
     end
@@ -1094,7 +1094,7 @@ describe LogStash::Filters::Mutate do
       }'
 
 
-    sample("field1" => nil, "field2" => nil, "field3" => nil, "field4" => true) do
+    sample({"field1" => nil, "field2" => nil, "field3" => nil, "field4" => true}) do
       expect(subject.get("field1")).to eq("Hello")
       expect(subject.get("field2")).to eq("Bye")
       expect(subject.get("field3")).to eq("5")
