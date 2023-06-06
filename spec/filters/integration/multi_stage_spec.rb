@@ -34,7 +34,7 @@ describe 'LogStash::Filters::Mutate' do
 CONFIG
     end
 
-    sample("message" => "hello WORLD", "lower1" => "PPQQRRSS", "lower2" => "pppqqq") do
+    sample({"message" => "hello WORLD", "lower1" => "PPQQRRSS", "lower2" => "pppqqq"}) do
       result = results.first
       expect(result.get("bar")).to eq('world')
       expect(result.get("lower1")).to eq("ppqqrrss")
