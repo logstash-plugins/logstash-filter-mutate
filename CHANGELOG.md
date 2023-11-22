@@ -1,3 +1,6 @@
+## 3.5.8
+  - Fix "Can't modify frozen string" error when converting boolean to `string` [#171](https://github.com/logstash-plugins/logstash-filter-mutate/pull/171) 
+  
 ## 3.5.7
   - Clarify that `split` and `join` also support strings [#164](https://github.com/logstash-plugins/logstash-filter-mutate/pull/164)
 

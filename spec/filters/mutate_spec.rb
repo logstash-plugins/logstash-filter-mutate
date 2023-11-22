@@ -934,6 +934,26 @@ describe LogStash::Filters::Mutate do
     end
   end
 
+  describe "convert auto-frozen values to string" do
+    config <<-CONFIG
+      filter {
+        mutate {
+          convert => {
+            "true_field"  => "string"
+            "false_field" => "string"
+          }
+        }
+      }
+    CONFIG
+
+    sample({ "true_field" => true, "false_field" => false, "nil_field" => nil }) do
+      expect(subject.get("true_field")).to eq "true"
+      expect(subject.get("true_field")).to be_a(String)
+      expect(subject.get("false_field")).to eq "false"
+      expect(subject.get("false_field")).to be_a(String)
+    end
+  end
+
   #LOGSTASH-1529
   describe "gsub on a String with dynamic fields (%{}) in pattern" do
     config '
