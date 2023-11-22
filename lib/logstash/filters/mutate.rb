@@ -330,7 +330,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     # target encoding and only change if necessary, so calling
     # valid_encoding? is redundant
     # see https://twitter.com/jordansissel/status/444613207143903232
-    value.to_s.force_encoding(Encoding::UTF_8)
+    # use + since .to_s on nil/boolean returns a frozen string since ruby 2.7
+    (+value.to_s).force_encoding(Encoding::UTF_8)
   end
 
   def convert_boolean(value)
