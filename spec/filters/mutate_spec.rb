@@ -946,7 +946,7 @@ describe LogStash::Filters::Mutate do
       }
     CONFIG
 
-    sample({ "true_field" => true, "false_field" => false, "nil_field" => nil }) do
+    sample({ "true_field" => true, "false_field" => false }) do
       expect(subject.get("true_field")).to eq "true"
       expect(subject.get("true_field")).to be_a(String)
       expect(subject.get("false_field")).to eq "false"
