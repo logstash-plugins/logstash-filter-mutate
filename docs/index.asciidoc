@@ -51,7 +51,7 @@ Example:
 filter {
     mutate {
         split => { "hostname" => "." }
-        add_field => { "shortHostname" => "%{[hostname][0]}" }
+        add_field => { "shortHostname" => "%{hostname[0]}" }
     }
 
     mutate {    
