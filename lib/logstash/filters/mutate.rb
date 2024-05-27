@@ -509,10 +509,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     @merge.each do |dest_field, added_fields|
       # When multiple calls, added_field is an array
 
-      dest_field_value = event.get(dest_field)
-
       Array(added_fields).each do |added_field|
         added_field_value = event.get(added_field)
+        dest_field_value = event.get(dest_field)
 
         if dest_field_value.is_a?(Hash) ^ added_field_value.is_a?(Hash)
           @logger.error("Not possible to merge an array and a hash: ", :dest_field => dest_field, :added_field => added_field )
