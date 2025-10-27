@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/filters/base"
 require "logstash/namespace"
+require "bigdecimal"
 
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, replace, and modify fields in your events.
@@ -344,15 +345,34 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def convert_integer(value)
     return 1 if value == true
     return 0 if value == false
-    return value.to_i if !value.is_a?(String)
-    value.tr(",", "").to_i
+    return value if value.is_a?(Integer)
+
+    if value.is_a?(String)
+      value = value.strip.delete(',')
+      sign, unsigned_hex = parse_signed_hex_str(value)
+      # hex integer
+      return Integer(value) if unsigned_hex&.count('.') == 0
+      # hex float
+      return Integer(sign * Float(unsigned_hex)) unless unsigned_hex.nil?
+      # floating point number
+      return Integer(BigDecimal(value)) if value.count('.') == 1
+    end
+
+    Integer(value)
   end
 
   def convert_float(value)
     return 1.0 if value == true
     return 0.0 if value == false
-    value = value.delete(",") if value.kind_of?(String)
-    value.to_f
+
+    if value.is_a?(String)
+      value = value.strip.delete(',')
+      sign, unsigned_hex = parse_signed_hex_str(value)
+      # hex float
+      return sign * Float(unsigned_hex) unless unsigned_hex.nil?
+    end
+
+    Float(value)
   end
 
   def convert_integer_eu(value)
@@ -372,6 +392,24 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def cnv_replace_eu(value)
     return value if !value.is_a?(String)
     value.tr(",.", ".,")
+  end
+
+  # Parses a string to determine if it represents a signed hexadecimal number.
+  # If the string matches a signed hex format (eg "-0x1A"), returns an array
+  # containing the sign (-1 or 1) and the unsigned hex string (eg "0x1A").
+  # BigDecimal() can't parse hex string.
+  # JRuby Float() can't parse signed hex string.
+  #
+  # @param value [String] the string to parse
+  # @return Array(Integer, String) the sign and unsigned hex string, or nil if not a hex string
+  def parse_signed_hex_str(value)
+    if value.match?(/^[+-]?0x/i)
+      sign = value.start_with?('-') ? -1 : 1
+      unsigned = value.sub(/^[+-]/, '')
+      return [sign, unsigned]
+    end
+
+    nil
   end
 
   def gsub(event)
