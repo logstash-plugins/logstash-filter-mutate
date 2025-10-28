@@ -1,3 +1,6 @@
+## 3.5.9
+  - Fix `convert` to covert hexadecimal float notation and scientific notation string to float and integer [#175](https://github.com/logstash-plugins/logstash-filter-mutate/pull/175)
+  
 ## 3.5.8
   - Fix "Can't modify frozen string" error when converting boolean to `string` [#171](https://github.com/logstash-plugins/logstash-filter-mutate/pull/171) 
   
