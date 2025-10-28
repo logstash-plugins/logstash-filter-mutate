@@ -1518,4 +1518,51 @@ describe LogStash::Filters::Mutate do
     end
 
   end unless LogStash::Filters::Mutate.is_lenient_version? # only test type conversions in v8.14+
+
+  describe "parse_signed_hex_str" do
+    subject { LogStash::Filters::Mutate.new({ }) }
+
+    context 'hexadecimal integers' do
+      it 'parses positive hex integer' do
+        expect(subject.send(:parse_signed_hex_str, '0x1A')).to eq(26.0)
+        expect(subject.send(:parse_signed_hex_str, '+0xFF')).to eq(255.0)
+      end
+
+      it 'parses negative hex integer' do
+        expect(subject.send(:parse_signed_hex_str, '-0x1A')).to eq(-26.0)
+        expect(subject.send(:parse_signed_hex_str,'-0xFF')).to eq(-255.0)
+      end
+
+      it 'ignores case in hex prefix' do
+        expect(subject.send(:parse_signed_hex_str,'0X1A')).to eq(26.0)
+        expect(subject.send(:parse_signed_hex_str,'-0X1A')).to eq(-26.0)
+      end
+    end
+
+    context 'hexadecimal floats' do
+      it 'parses positive hex float' do
+        expect(subject.send(:parse_signed_hex_str,'0x1.8p+1')).to eq(3.0)
+        expect(subject.send(:parse_signed_hex_str,'+0x1.2p+2')).to eq(4.5)
+      end
+
+      it 'parses negative hex float' do
+        expect(subject.send(:parse_signed_hex_str,'-0x1.8p+1')).to eq(-3.0)
+        expect(subject.send(:parse_signed_hex_str,'-0x1.2p+2')).to eq(-4.5)
+      end
+    end
+
+    context 'non-hex strings' do
+      it 'returns nil for decimal numbers' do
+        expect(subject.send(:parse_signed_hex_str,'123')).to be_nil
+        expect(subject.send(:parse_signed_hex_str,'-456')).to be_nil
+        expect(subject.send(:parse_signed_hex_str,'1.23')).to be_nil
+      end
+
+      it 'returns nil for random strings' do
+        expect(subject.send(:parse_signed_hex_str,'abc')).to be_nil
+        expect(subject.send(:parse_signed_hex_str,'0b1010')).to be_nil
+      end
+    end
+  end unless LogStash::Filters::Mutate.is_lenient_version?
+
 end

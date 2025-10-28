@@ -404,14 +404,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   # Parses a string to determine if it represents a signed hexadecimal number.
   # If the string matches a signed hex format (eg "-0x1A"), returns the signed float value.
-  # JRuby Float() can't parse signed hex string.
+  # JRuby Float() can't parse signed hex string and uppercase hex string.
   #
   # @param value [String] the string to parse
   # @return [Float, nil] the signed float value if hex, or nil if not a hex string
   def parse_signed_hex_str(value)
     if value.match?(/^[+-]?0x/i)
       sign = value.start_with?('-') ? -1 : 1
-      unsigned = value.sub(/^[+-]/, '')
+      unsigned = value.sub(/^[+-]/, '').downcase
       return sign * Float(unsigned)
     end
 
