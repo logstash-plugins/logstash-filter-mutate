@@ -1122,7 +1122,7 @@ describe LogStash::Filters::Mutate do
     end
   end
 
-  describe "convert makes types conversion" do
+  describe "convert makes type conversions" do
     context "to string" do
       config <<-CONFIG
         filter {
@@ -1131,11 +1131,11 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       context "123" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 123 }) do
           expect(subject.get("a")).to be_a(String).and eq("123")
         end
-        # Float and Double
+        # Float
         sample({ "a" => Float(123.0) }) do
           expect(subject.get("a")).to be_a(String).and eq("123.0")
         end
@@ -1155,7 +1155,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "123.45" do
-        # Float and Double
+        # Float
         sample({ "a" => Float(123.45) }) do
           expect(subject.get("a")).to be_a(String).and eq("123.45")
         end
@@ -1172,11 +1172,11 @@ describe LogStash::Filters::Mutate do
       end
 
       context "16777217" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 16777217 }) do
           expect(subject.get("a")).to be_a(String).and eq("16777217")
         end
-        # Float and Double
+        # Float
         sample({ "a" => 1.6777217E7 }) do
           expect(subject.get("a")).to be_a(String).and eq("16777217.0")
         end
@@ -1251,11 +1251,11 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       context "123" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 123 }) do
           expect(subject.get("a")).to be_a(Integer).and eq(123)
         end
-        # Float and Double
+        # Float
         sample({ "a" => Float(123.0) }) do
           expect(subject.get("a")).to be_a(Integer).and eq(123)
         end
@@ -1275,7 +1275,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "123.45" do
-        # Float and Double
+        # Float
         sample({ "a" => Float(123.45) }) do
           expect(subject.get("a")).to be_a(Integer).and eq(123)
         end
@@ -1292,7 +1292,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "-123.45" do
-        # Float and Double
+        # Float
         sample({ "a" => Float(-123.45) }) do
           expect(subject.get("a")).to be_a(Integer).and eq(-123)
         end
@@ -1309,7 +1309,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "16777217" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 16777217 }) do
           expect(subject.get("a")).to be_a(Integer).and eq(16777217)
         end
@@ -1388,11 +1388,11 @@ describe LogStash::Filters::Mutate do
       CONFIG
 
       context "123" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 123 }) do
           expect(subject.get("a")).to be_a(Float).and eq(123.0)
         end
-        # Float and Double
+        # Float
         sample({ "a" => Float(123) }) do
           expect(subject.get("a")).to be_a(Float).and eq(123.0)
         end
@@ -1412,7 +1412,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "123.45" do
-        # Float and Double
+        # Float
         sample({ "a" => Float(123.45) }) do
           expect(subject.get("a")).to be_a(Float).and eq(123.45)
         end
@@ -1429,7 +1429,7 @@ describe LogStash::Filters::Mutate do
       end
 
       context "-123.45" do
-        # Float and Double
+        # Float
         sample({ "a" => Float(-123.45) }) do
           expect(subject.get("a")).to be_a(Float).and eq(-123.45)
         end
@@ -1446,11 +1446,11 @@ describe LogStash::Filters::Mutate do
       end
 
       context "16777217" do
-        # Integer and Long
+        # Integer
         sample({ "a" => 16777217 }) do
           expect(subject.get("a")).to be_a(Float).and eq(1.6777217E7)
         end
-        # Float and Double
+        # Float
         sample({ "a" => 1.6777217E7 }) do
           expect(subject.get("a")).to be_a(Float).and eq(1.6777217E7)
         end
@@ -1517,5 +1517,5 @@ describe LogStash::Filters::Mutate do
       end
     end
 
-  end
+  end unless LogStash::Filters::Mutate.is_lenient_version? # only test type conversions in v8.14+
 end

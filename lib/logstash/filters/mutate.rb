@@ -228,6 +228,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         )
       end
     end
+    # fallback to old type conversion behavior prior to Logstash 8.14.0
+    @lenient_conversion = self.class.is_lenient_version?
 
     @gsub_parsed = []
     @gsub.nil? or @gsub.each_slice(3) do |field, needle, replacement|
@@ -343,18 +345,22 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_integer(value)
+    value = value.strip.delete(',') if value.is_a?(String)
+
     return 1 if value == true
     return 0 if value == false
     return value if value.is_a?(Integer)
+    return value.to_i if @lenient_conversion
 
     if value.is_a?(String)
-      value = value.strip.delete(',')
-      sign, unsigned_hex = parse_signed_hex_str(value)
-      # hex integer
-      return Integer(value) if unsigned_hex&.count('.') == 0
-      # hex float
-      return Integer(sign * Float(unsigned_hex)) unless unsigned_hex.nil?
-      # floating point number
+      signed_float = parse_signed_hex_str(value)
+      # hex number
+      if signed_float
+        return Integer(value) if value.count(".").zero?
+        return Integer(signed_float)
+      end
+
+      # floating point number. BigDecimal() can't parse hex string
       return Integer(BigDecimal(value)) if value.count('.') == 1
     end
 
@@ -362,14 +368,16 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_float(value)
+    value = value.strip.delete(',') if value.is_a?(String)
+
     return 1.0 if value == true
     return 0.0 if value == false
+    return value if value.is_a?(Float)
+    return value.to_f if @lenient_conversion
 
     if value.is_a?(String)
-      value = value.strip.delete(',')
-      sign, unsigned_hex = parse_signed_hex_str(value)
-      # hex float
-      return sign * Float(unsigned_hex) unless unsigned_hex.nil?
+      signed_float = parse_signed_hex_str(value)
+      return signed_float if signed_float
     end
 
     Float(value)
@@ -395,18 +403,16 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   # Parses a string to determine if it represents a signed hexadecimal number.
-  # If the string matches a signed hex format (eg "-0x1A"), returns an array
-  # containing the sign (-1 or 1) and the unsigned hex string (eg "0x1A").
-  # BigDecimal() can't parse hex string.
+  # If the string matches a signed hex format (eg "-0x1A"), returns the signed float value.
   # JRuby Float() can't parse signed hex string.
   #
   # @param value [String] the string to parse
-  # @return Array(Integer, String) the sign and unsigned hex string, or nil if not a hex string
+  # @return [Float, nil] the signed float value if hex, or nil if not a hex string
   def parse_signed_hex_str(value)
     if value.match?(/^[+-]?0x/i)
       sign = value.start_with?('-') ? -1 : 1
       unsigned = value.sub(/^[+-]/, '')
-      return [sign, unsigned]
+      return sign * Float(unsigned)
     end
 
     nil
@@ -579,5 +585,9 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       next if original.nil?
       event.set(dest_field,LogStash::Util.deep_clone(original))
     end
+  end
+
+  def self.is_lenient_version?
+    Gem::Version.new(LOGSTASH_VERSION) < Gem::Version.new("8.14.0")
   end
 end
