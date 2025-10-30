@@ -230,6 +230,8 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
     end
     # fallback to old type conversion behavior prior to Logstash 8.14.0
     @lenient_conversion = self.class.is_lenient_version?
+    # signed hex parsing support in jruby 10
+    @support_signed_hex = self.class.can_parse_signed_hex?
 
     @gsub_parsed = []
     @gsub.nil? or @gsub.each_slice(3) do |field, needle, replacement|
@@ -404,11 +406,14 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   # Parses a string to determine if it represents a signed hexadecimal number.
   # If the string matches a signed hex format (eg "-0x1A"), returns the signed float value.
-  # JRuby Float() can't parse signed hex string and uppercase hex string.
+  # JRuby Float() can parse signed hex string and uppercase hex string in version 10+,
+  # but not in earlier versions.
   #
   # @param value [String] the string to parse
   # @return [Float, nil] the signed float value if hex, or nil if not a hex string
   def parse_signed_hex_str(value)
+    return Float(value) if @support_signed_hex
+
     if value.match?(/^[+-]?0x/i)
       sign = value.start_with?('-') ? -1 : 1
       unsigned = value.sub(/^[+-]/, '').downcase
@@ -589,5 +594,11 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
   def self.is_lenient_version?
     Gem::Version.new(LOGSTASH_VERSION) < Gem::Version.new("8.14.0")
+  end
+
+  def self.can_parse_signed_hex?
+    Float("-0x1A") == -26.0
+  rescue ArgumentError
+    false
   end
 end

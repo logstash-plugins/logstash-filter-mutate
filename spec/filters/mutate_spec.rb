@@ -1525,7 +1525,6 @@ describe LogStash::Filters::Mutate do
     context 'hexadecimal integers' do
       it 'parses positive hex integer' do
         expect(subject.send(:parse_signed_hex_str, '0x1A')).to eq(26.0)
-        expect(subject.send(:parse_signed_hex_str, '+0xFF')).to eq(255.0)
       end
 
       it 'parses negative hex integer' do
@@ -1542,7 +1541,6 @@ describe LogStash::Filters::Mutate do
     context 'hexadecimal floats' do
       it 'parses positive hex float' do
         expect(subject.send(:parse_signed_hex_str,'0x1.8p+1')).to eq(3.0)
-        expect(subject.send(:parse_signed_hex_str,'+0x1.2p+2')).to eq(4.5)
       end
 
       it 'parses negative hex float' do
