@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "logstash/filters/base"
 require "logstash/namespace"
+require "bigdecimal"
 
 # The mutate filter allows you to perform general mutations on fields. You
 # can rename, replace, and modify fields in your events.
@@ -227,6 +228,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         )
       end
     end
+    # fallback to old type conversion behavior prior to Logstash 8.14.0
+    @lenient_conversion = self.class.is_lenient_version?
+    # signed hex parsing support in jruby 10
+    @support_signed_hex = self.class.can_parse_signed_hex?
 
     @gsub_parsed = []
     @gsub.nil? or @gsub.each_slice(3) do |field, needle, replacement|
@@ -342,17 +347,44 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_integer(value)
+    value = value.strip.delete(',').downcase if value.is_a?(String)
+
     return 1 if value == true
     return 0 if value == false
-    return value.to_i if !value.is_a?(String)
-    value.tr(",", "").to_i
+    return value if value.is_a?(Integer)
+    return value.to_i if @lenient_conversion
+
+    if value.is_a?(String)
+      signed_float = parse_signed_hex_str(value)
+      # hex number
+      if signed_float
+        return Integer(value) if value.count(".").zero?
+        return Integer(signed_float)
+      end
+
+      # scientific notation. BigDecimal() can't parse hex string
+      return BigDecimal(value).to_i if value.include?("e")
+      # maybe a float string
+      return value.to_i
+    end
+
+    Integer(value)
   end
 
   def convert_float(value)
+    value = value.strip.delete(',').downcase if value.is_a?(String)
+
     return 1.0 if value == true
     return 0.0 if value == false
-    value = value.delete(",") if value.kind_of?(String)
-    value.to_f
+    return value if value.is_a?(Float)
+    return value.to_f if @lenient_conversion
+
+    if value.is_a?(String)
+      signed_float = parse_signed_hex_str(value)
+      return signed_float if signed_float
+    end
+
+    Float(value)
   end
 
   def convert_integer_eu(value)
@@ -372,6 +404,25 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   def cnv_replace_eu(value)
     return value if !value.is_a?(String)
     value.tr(",.", ".,")
+  end
+
+  # Parses a string to determine if it represents a signed hexadecimal number.
+  # If the string matches a signed hex format (eg "-0x1A"), returns the signed float value.
+  # JRuby Float() can parse signed hex string and uppercase hex string in version 10+,
+  # but not in earlier versions.
+  #
+  # @param value [String] the string to parse
+  # @return [Float, nil] the signed float value if hex, or nil if not a hex string
+  def parse_signed_hex_str(value)
+    return Float(value) if @support_signed_hex
+
+    if value.match?(/^[+-]?0x/i)
+      sign = value.start_with?('-') ? -1 : 1
+      unsigned = value.sub(/^[+-]/, '')
+      return sign * Float(unsigned)
+    end
+
+    nil
   end
 
   def gsub(event)
@@ -541,5 +592,15 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       next if original.nil?
       event.set(dest_field,LogStash::Util.deep_clone(original))
     end
+  end
+
+  def self.is_lenient_version?
+    Gem::Version.new(LOGSTASH_VERSION) < Gem::Version.new("8.14.0")
+  end
+
+  def self.can_parse_signed_hex?
+    Float("-0x1A") == -26.0
+  rescue ArgumentError
+    false
   end
 end
