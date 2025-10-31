@@ -1539,8 +1539,8 @@ describe LogStash::Filters::Mutate do
       end
 
       it 'ignores case in hex prefix' do
-        expect(subject.send(:parse_signed_hex_str,'0X1A')).to eq(26.0)
-        expect(subject.send(:parse_signed_hex_str,'-0X1A')).to eq(-26.0)
+        expect(subject.send(:parse_signed_hex_str,'0x1A')).to eq(26.0)
+        expect(subject.send(:parse_signed_hex_str,'-0x1A')).to eq(-26.0)
       end
     end
 

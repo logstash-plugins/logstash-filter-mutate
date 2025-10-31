@@ -347,7 +347,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_integer(value)
-    value = value.strip.delete(',') if value.is_a?(String)
+    value = value.strip.delete(',').downcase if value.is_a?(String)
 
     return 1 if value == true
     return 0 if value == false
@@ -372,7 +372,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   end
 
   def convert_float(value)
-    value = value.strip.delete(',') if value.is_a?(String)
+    value = value.strip.delete(',').downcase if value.is_a?(String)
 
     return 1.0 if value == true
     return 0.0 if value == false
@@ -418,7 +418,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
 
     if value.match?(/^[+-]?0x/i)
       sign = value.start_with?('-') ? -1 : 1
-      unsigned = value.sub(/^[+-]/, '').downcase
+      unsigned = value.sub(/^[+-]/, '')
       return sign * Float(unsigned)
     end
 
