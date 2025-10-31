@@ -1356,6 +1356,9 @@ describe LogStash::Filters::Mutate do
         sample({ "a" => "9007199254740993.0" }) do
           expect(subject.get("a")).to be_a(Integer).and eq(9007199254740993)
         end
+        sample({ "a" => "9.007199254740993e+15" }) do
+          expect(subject.get("a")).to be_a(Integer).and eq(9007199254740993)
+        end
       end
 
       context "9223372036854775808" do
@@ -1493,6 +1496,9 @@ describe LogStash::Filters::Mutate do
         end
         sample({ "a" => "9007199254740993.0" }) do
           expect(subject.get("a")).to be_a(Float).and eq(9.007199254740992E15)
+        end
+        sample({ "a" => "9.007199254740993e+15" }) do
+          expect(subject.get("a")).to be_a(Float).and eq(9007199254740992)
         end
       end
 

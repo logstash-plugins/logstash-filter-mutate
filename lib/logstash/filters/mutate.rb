@@ -362,8 +362,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
         return Integer(signed_float)
       end
 
-      # floating point number. BigDecimal() can't parse hex string
-      return Integer(BigDecimal(value)) if value.count('.') == 1
+      # scientific notation. BigDecimal() can't parse hex string
+      return BigDecimal(value).to_i if value.include?("e")
+      # maybe a float string
+      return value.to_i
     end
 
     Integer(value)
