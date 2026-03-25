@@ -1,3 +1,6 @@
+## 3.6.0
+  - Add JRuby 10 support: fix integer conversion precision loss beyond 2^53 caused by `parse_signed_hex_str` routing all strings through `Float()` [#178](https://github.com/logstash-plugins/logstash-filter-mutate/pull/178)
+
 ## 3.5.9
   - Fix `convert` to covert hexadecimal float notation and scientific notation string to float and integer [#175](https://github.com/logstash-plugins/logstash-filter-mutate/pull/175)
   
