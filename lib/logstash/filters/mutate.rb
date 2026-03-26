@@ -365,7 +365,7 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
       # scientific notation. BigDecimal() can't parse hex string
       return BigDecimal(value).to_i if value.include?("e")
       # maybe a float string
-      return value.to_i
+      return BigDecimal(value).to_i
     end
 
     Integer(value)
@@ -414,7 +414,10 @@ class LogStash::Filters::Mutate < LogStash::Filters::Base
   # @param value [String] the string to parse
   # @return [Float, nil] the signed float value if hex, or nil if not a hex string
   def parse_signed_hex_str(value)
-    return Float(value) if @support_signed_hex
+    if @support_signed_hex
+      return Float(value) if value.match?(/^[+-]?0x/i)
+      return nil
+    end
 
     if value.match?(/^[+-]?0x/i)
       sign = value.start_with?('-') ? -1 : 1
