@@ -1099,6 +1099,21 @@ describe LogStash::Filters::Mutate do
       expect(subject.get("foo")).to eq "bar"
     end
   end
+  
+  describe "merge multiple fields into string field" do
+    config '
+      filter {
+        mutate {
+          merge => [ "list", [ "foo", "spam" ] ]
+        }
+      }'
+
+    sample("foo" => "bar", "spam" => "ham", "list" => "baz") do
+      expect(subject.get("list")).to eq ["baz", "bar", "ham"]
+      expect(subject.get("foo")).to eq "bar"
+      expect(subject.get("spam")).to eq "ham"
+    end
+  end
 
   describe "coerce arrays fields with default values when null" do
     config '
